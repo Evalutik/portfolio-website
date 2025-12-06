@@ -1,0 +1,92 @@
+'use client'
+
+import { motion } from 'framer-motion'
+import { Button } from '@/components/ui/Button'
+
+export function Hero() {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15,
+        delayChildren: 0.1,
+      },
+    },
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 16 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1] },
+    },
+  }
+
+  return (
+    <section className="relative min-h-screen flex items-center justify-center px-4 py-20 overflow-hidden">
+      {/* Background grid */}
+      <div className="absolute inset-0 bg-dots opacity-50" />
+      
+      {/* Subtle gradient orbs */}
+      <div className="gradient-orb w-[600px] h-[600px] bg-primary/30 -top-[200px] -left-[200px]" />
+      <div className="gradient-orb w-[500px] h-[500px] bg-accent/20 bottom-[10%] -right-[150px]" />
+
+      <motion.div
+        className="relative z-10 max-w-2xl text-center"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* Badge */}
+        <motion.div
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface border border-border text-xs text-text-secondary mb-6"
+          variants={itemVariants}
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+          Available for opportunities
+        </motion.div>
+
+        {/* Name */}
+        <motion.h1
+          className="text-4xl md:text-5xl font-semibold mb-4 tracking-tight text-text-primary"
+          variants={itemVariants}
+        >
+          Andrey Evalutik
+        </motion.h1>
+
+        {/* Title */}
+        <motion.h2
+          className="text-lg md:text-xl text-text-secondary mb-6 font-normal"
+          variants={itemVariants}
+        >
+          <span className="text-gradient font-medium">Data Engineer</span>
+          {' '}&{' '}
+          <span className="text-gradient font-medium">AI Specialist</span>
+        </motion.h2>
+
+        {/* Tagline */}
+        <motion.p
+          className="text-base text-text-muted mb-10 max-w-lg mx-auto leading-relaxed"
+          variants={itemVariants}
+        >
+          Building data pipelines and intelligent systems that transform complex data into actionable insights.
+        </motion.p>
+
+        {/* CTA Buttons */}
+        <motion.div
+          className="flex flex-col sm:flex-row gap-3 justify-center"
+          variants={itemVariants}
+        >
+          <Button href="#projects" variant="primary">
+            View Work
+          </Button>
+          <Button href="#contact" variant="secondary">
+            Contact
+          </Button>
+        </motion.div>
+      </motion.div>
+    </section>
+  )
+}

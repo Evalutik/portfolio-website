@@ -1,0 +1,115 @@
+/**
+ * Global Styles
+ * 
+ * This file contains global CSS styles, utility classes, and custom components.
+ * Colors and design tokens are defined in src/config/colors.ts and tailwind.config.ts
+ */
+
+/* =============================================================================
+   FONTS
+   ============================================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* =============================================================================
+   TAILWIND IMPORTS
+   ============================================================================= */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =============================================================================
+   BASE STYLES
+   ============================================================================= */
+* {
+  @apply antialiased;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-background text-text-primary font-sans;
+  /* Inter font feature settings for improved typography */
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+}
+
+/* =============================================================================
+   CARD COMPONENTS
+   ============================================================================= */
+
+/* Base card - used for containers and sections */
+.card {
+  @apply bg-surface/80 backdrop-blur-md border border-border rounded-xl;
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  @apply border-border-light bg-surface-light/80;
+}
+
+/* Glass effect - frosted glass appearance with backdrop blur */
+.glass {
+  @apply backdrop-blur-xl border border-white/10 rounded-xl;
+  background: linear-gradient(
+    135deg,
+    rgba(18, 18, 26, 0.8) 0%,
+    rgba(18, 18, 26, 0.6) 100%
+  );
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.glass:hover {
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 
+    0 8px 32px rgba(99, 102, 241, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* =============================================================================
+   BACKGROUND PATTERNS
+   ============================================================================= */
+
+/* Grid pattern - subtle background grid */
+.bg-grid {
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.2) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+/* Dots pattern - subtle dot grid background */
+.bg-dots {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Gradient orb - large blurred background accent */
+.gradient-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+/* =============================================================================
+   UTILITY CLASSES
+   ============================================================================= */
+
+/* Smooth transition preset */
+.transition-smooth {
+  @apply transition-all duration-200 ease-out;
+}
+
+/* Gradient text effect */
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
+}
+
+/* Monospace code styling */
+.code-text {
+  @apply font-mono text-sm text-text-secondary;
+}
