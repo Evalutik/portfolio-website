@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { Button } from '@/components/ui/Button'
+import { Github, Linkedin } from 'lucide-react'
 
 export function Contact() {
   return (
@@ -13,49 +14,62 @@ export function Contact() {
       />
 
       <motion.div
-        className="card p-6"
+        className="card p-5 relative"
         initial={{ opacity: 0, y: 12 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.4 }}
       >
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <div className="space-y-2">
+        {/* Button: top right on desktop, below on mobile */}
+        <div className="hidden sm:block">
+          <div className="absolute top-4 right-4">
+            <Button href="mailto:andreyfedyna@gmail.com" variant="primary" external>
+              Get in touch
+            </Button>
+          </div>
+        </div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="space-y-3">
             <a 
-              href="mailto:your.email@example.com" 
-              className="flex items-center gap-2 text-text-secondary hover:text-primary transition-colors text-sm"
+              href="mailto:andreyfedyna@gmail.com" 
+              className="group inline-flex items-center gap-2 text-sm transition-colors"
             >
               <span className="text-text-muted">Email</span>
-              <span className="text-text-primary">your.email@example.com</span>
+              <span className="text-text-primary group-hover:text-primary transition-colors">andreyfedyna@gmail.com</span>
             </a>
-            <div className="flex gap-4">
+            <div className="flex items-center gap-2">
               <a 
                 href="https://linkedin.com" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="text-text-muted hover:text-primary transition-colors text-sm"
+                className="flex items-center justify-center w-7 h-7 rounded-md bg-surface border border-border text-text-muted hover:text-white hover:border-white/30 transition-all"
+                aria-label="LinkedIn"
               >
-                LinkedIn
+                <Linkedin className="w-3.5 h-3.5" strokeWidth={1.5} />
               </a>
               <a 
                 href="https://github.com" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="text-text-muted hover:text-primary transition-colors text-sm"
+                className="flex items-center justify-center w-7 h-7 rounded-md bg-surface border border-border text-text-muted hover:text-white hover:border-white/30 transition-all"
+                aria-label="GitHub"
               >
-                GitHub
+                <Github className="w-3.5 h-3.5" strokeWidth={1.5} />
               </a>
             </div>
           </div>
-          <Button href="mailto:your.email@example.com" variant="primary">
-            Get in touch
-          </Button>
+          {/* Button: below content on mobile, full width */}
+          <div className="sm:hidden mt-4">
+            <Button href="mailto:andreyfedyna@gmail.com" variant="primary" className="w-full" external>
+              Get in touch
+            </Button>
+          </div>
         </div>
       </motion.div>
 
       {/* Footer */}
       <div className="text-center mt-16 pt-8 border-t border-border">
-        <p className="text-text-muted text-xs">© 2024 Andrey Evalutik. All rights reserved.</p>
+        <p className="text-text-muted text-xs">© {new Date().getFullYear()} Andrei Fedyna. All rights reserved.</p>
       </div>
     </section>
   )

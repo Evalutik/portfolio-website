@@ -22,6 +22,13 @@ export function Navigation() {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50)
 
+      // Check if at the bottom of the page first
+      const isAtBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 50
+      if (isAtBottom) {
+        setActiveSection('contact')
+        return
+      }
+
       const sections = navItems.map(item => item.href.replace('#', ''))
       for (const section of sections.reverse()) {
         const element = document.getElementById(section)
@@ -75,7 +82,7 @@ export function Navigation() {
                 : 'bg-transparent border-transparent'
             }`}
           >
-            {/* Logo */}
+            {/* Logo: appears only when header is scrolled (hero not visible) */}
             <Link
               href="#"
               onClick={(e) => {
@@ -84,7 +91,35 @@ export function Navigation() {
               }}
               className="text-sm font-medium text-text-primary hover:text-primary transition-colors"
             >
-              <span className="font-mono">AE</span>
+              <div className="min-w-[40px] md:min-w-[140px]">
+                <AnimatePresence mode="wait">
+                  {scrolled ? (
+                    <motion.span
+                      key="logo"
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.28, ease: [0.25, 0.1, 0.25, 1] }}
+                      className="inline-block"
+                    >
+                      <span className="font-mono hidden md:inline">Andrei Fedyna</span>
+                      <span className="font-mono md:hidden">AF</span>
+                    </motion.span>
+                  ) : (
+                    <motion.span
+                      key="logo-empty"
+                      initial={{ opacity: 1, y: 0 }}
+                      animate={{ opacity: 0, y: -8 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.2 }}
+                      className="inline-block"
+                    >
+                      {/* placeholder to preserve layout */}
+                      &nbsp;
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </div>
             </Link>
 
             {/* Desktop Nav */}
@@ -158,7 +193,7 @@ export function Navigation() {
               initial={{ opacity: 0, y: -10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             >
               <div className="bg-surface border border-border rounded-2xl p-2 shadow-xl">
                 {navItems.map((item, index) => (
@@ -172,7 +207,8 @@ export function Navigation() {
                     }`}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
+                    exit={{ opacity: 0, x: 10 }}
+                    transition={{ delay: index * 0.04 }}
                   >
                     {item.label}
                   </motion.button>

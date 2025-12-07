@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from 'react'
  * Hidden on touch devices.
  */
 export function CursorGlow() {
+  const gridRef = useRef<HTMLDivElement>(null)
   const glowRef = useRef<HTMLDivElement>(null)
   const [isVisible, setIsVisible] = useState(false)
   const [isMoving, setIsMoving] = useState(false)
@@ -28,8 +29,12 @@ export function CursorGlow() {
     // Initialize at center bottom of screen
     let mouseX = window.innerWidth / 2
     let mouseY = window.innerHeight
+    // Single shared position for both lights
     let currentX = mouseX
     let currentY = mouseY
+    // Velocity for spring physics (overshoot effect)
+    let velocityX = 0
+    let velocityY = 0
     let rafId: number
     
     const handleMouseMove = (e: MouseEvent) => {
@@ -53,15 +58,38 @@ export function CursorGlow() {
       setIsVisible(true)
     }
     
-    // Smooth animation loop
+    // Spring physics animation - both lights share same position
     const animate = () => {
-      // Ease towards mouse position
-      const ease = 0.15
-      currentX += (mouseX - currentX) * ease
-      currentY += (mouseY - currentY) * ease
+      // Spring constants - one subtle overshoot then settle
+      const stiffness = 0.035  // Pull strength toward cursor
+      const damping = 0.82     // Higher = fewer bounces
       
+      // Calculate spring force toward mouse position
+      const forceX = (mouseX - currentX) * stiffness
+      const forceY = (mouseY - currentY) * stiffness
+      
+      // Apply force to velocity (velocity accumulates momentum)
+      velocityX += forceX
+      velocityY += forceY
+      
+      // Apply damping to velocity
+      velocityX *= damping
+      velocityY *= damping
+      
+      // Update position
+      currentX += velocityX
+      currentY += velocityY
+      
+      // Update grid mask position
+      if (gridRef.current) {
+        const maskGradient = `radial-gradient(circle 168px at ${currentX}px ${currentY}px, black 0%, transparent 70%)`
+        gridRef.current.style.maskImage = maskGradient
+        gridRef.current.style.webkitMaskImage = maskGradient
+      }
+      
+      // Update glow position - same as grid
       if (glowRef.current) {
-        glowRef.current.style.transform = `translate(${currentX}px, ${currentY}px) translate(-50%, -50%)`
+        glowRef.current.style.transform = `translate(${currentX}px, ${currentY}px)`
       }
       
       rafId = requestAnimationFrame(animate)
@@ -80,26 +108,55 @@ export function CursorGlow() {
       cancelAnimationFrame(rafId)
       if (moveTimeoutRef.current) clearTimeout(moveTimeoutRef.current)
     }
-  }, [isTouchDevice, isVisible])
+  }, [isTouchDevice])
   
   // Don't render on touch devices
   if (isTouchDevice) return null
 
   return (
-    <div
-      ref={glowRef}
-      className="fixed top-0 left-0 pointer-events-none"
-      style={{
-        width: '200px',
-        height: '200px',
-        background: 'radial-gradient(circle, rgba(139, 92, 246, 0.25) 0%, rgba(139, 92, 246, 0.1) 40%, transparent 70%)',
-        borderRadius: '50%',
-        opacity: isVisible ? (isMoving ? 1 : 0.5) : 0,
-        // Fast fade in (0.2s), slow fade out (3s)
-        transition: isMoving ? 'opacity 0.2s ease' : 'opacity 3s ease',
-        willChange: 'transform',
-        zIndex: 0,
-      }}
-    />
+    <>
+      {/* Illuminated grid layer - brighter grid visible only near cursor */}
+      <div
+        ref={gridRef}
+        className="fixed inset-0 pointer-events-none"
+        style={{
+          backgroundImage: `
+            linear-gradient(rgba(139, 92, 246, 0.6) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(139, 92, 246, 0.6) 1px, transparent 1px)
+          `,
+          backgroundSize: '64px 64px',
+          opacity: isVisible ? (isMoving ? 0.8 : 0.4) : 0,
+          transition: isMoving ? 'opacity 0.2s ease' : 'opacity 5s ease',
+          zIndex: -9,
+          // Mask will be set via JS
+          maskImage: 'radial-gradient(circle 168px at 50% 50%, black 0%, transparent 70%)',
+          WebkitMaskImage: 'radial-gradient(circle 168px at 50% 50%, black 0%, transparent 70%)',
+        }}
+      />
+      {/* Normal cursor glow */}
+      <div
+        ref={glowRef}
+        className="fixed top-0 left-0 pointer-events-none"
+        style={{ 
+          willChange: 'transform',
+          zIndex: -8,
+        }}
+      >
+        <div
+          className="absolute pointer-events-none"
+          style={{
+            width: '224px',
+            height: '224px',
+            left: '-112px',
+            top: '-112px',
+            background: 'radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, rgba(139, 92, 246, 0.03) 35%, transparent 55%)',
+            borderRadius: '50%',
+            opacity: isVisible ? (isMoving ? 1 : 0.4) : 0,
+            transition: isMoving ? 'opacity 0.2s ease' : 'opacity 3s ease',
+            filter: 'blur(12px)',
+          }}
+        />
+      </div>
+    </>
   )
 }

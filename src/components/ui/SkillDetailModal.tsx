@@ -26,11 +26,16 @@ export function SkillDetailModal({ skill, onClose }: SkillDetailModalProps) {
 
   useEffect(() => {
     if (skill) {
+      // Get scrollbar width before hiding
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
       document.body.style.overflow = 'hidden'
+      // Add padding to compensate for scrollbar disappearing
+      document.body.style.paddingRight = `${scrollbarWidth}px`
       window.addEventListener('keydown', handleKeyDown)
     }
     return () => {
       document.body.style.overflow = ''
+      document.body.style.paddingRight = ''
       window.removeEventListener('keydown', handleKeyDown)
     }
   }, [skill, handleKeyDown])
@@ -46,7 +51,7 @@ export function SkillDetailModal({ skill, onClose }: SkillDetailModalProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.21 }}
         >
           {/* Dark backdrop with fade */}
           <motion.div
@@ -54,7 +59,7 @@ export function SkillDetailModal({ skill, onClose }: SkillDetailModalProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.175 }}
           />
           
           {/* Content container - camera zooms INTO this */}
@@ -85,7 +90,7 @@ export function SkillDetailModal({ skill, onClose }: SkillDetailModalProps) {
             transition={{ 
               type: 'spring', 
               damping: 28, 
-              stiffness: 180,
+              stiffness: 234,
               mass: 0.8,
             }}
           >
@@ -163,7 +168,7 @@ export function SkillDetailModal({ skill, onClose }: SkillDetailModalProps) {
                   </motion.div>
                 )}
                 
-                {/* Return button */}
+                {/* Return button with diagonal shine wave */}
                 <motion.div 
                   className="mt-10"
                   initial={{ opacity: 0 }}
@@ -172,9 +177,39 @@ export function SkillDetailModal({ skill, onClose }: SkillDetailModalProps) {
                 >
                   <button
                     onClick={onClose}
-                    className="font-mono text-xs text-text-muted hover:text-accent-dark transition-colors"
+                    className="group font-mono text-xs text-text-muted hover:text-accent-dark transition-colors relative"
                   >
-                    return();
+                    {/* Base gray text */}
+                    <span>return();</span>
+                    
+                    {/* Bright purple overlay text with animated clip-path for diagonal sweep */}
+                    <motion.span
+                      className="absolute inset-0 pointer-events-none"
+                      style={{ 
+                        color: '#a78bfa',
+                        textShadow: '0 0 8px rgba(167, 139, 250, 0.8), 0 0 16px rgba(139, 92, 246, 0.5)'
+                      }}
+                      initial={{ 
+                        clipPath: 'polygon(-40% 0%, -20% 0%, -60% 100%, -80% 100%)'
+                      }}
+                      animate={{ 
+                        clipPath: [
+                          'polygon(-40% 0%, -20% 0%, -60% 100%, -80% 100%)',
+                          'polygon(100% 0%, 140% 0%, 100% 100%, 60% 100%)',
+                          'polygon(160% 0%, 180% 0%, 140% 100%, 120% 100%)'
+                        ]
+                      }}
+                      transition={{ 
+                        delay: 2, 
+                        duration: 0.6, 
+                        ease: 'easeInOut',
+                        times: [0, 0.7, 1],
+                        repeat: Infinity,
+                        repeatDelay: 7.4
+                      }}
+                    >
+                      return();
+                    </motion.span>
                   </button>
                 </motion.div>
                 

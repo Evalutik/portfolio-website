@@ -45,7 +45,7 @@ export function Hero() {
           variants={itemVariants}
         >
           <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-          Available for opportunities
+          Open to offers
         </motion.div>
 
         {/* Name */}
@@ -53,7 +53,7 @@ export function Hero() {
           className="text-4xl md:text-5xl font-semibold mb-4 tracking-tight text-text-primary"
           variants={itemVariants}
         >
-          Andrey Evalutik
+          Andrei Fedyna
         </motion.h1>
 
         {/* Title */}
@@ -76,7 +76,7 @@ export function Hero() {
 
         {/* CTA Buttons */}
         <motion.div
-          className="flex flex-col sm:flex-row gap-3 justify-center"
+          className="flex flex-row gap-3 justify-center"
           variants={itemVariants}
         >
           <Button href="#projects" variant="primary">
