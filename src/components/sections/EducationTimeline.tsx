@@ -80,6 +80,7 @@ const MARKER_X_POSITIONS = [60, 690, 60, 690, 60]
 
 export function EducationTimeline() {
     const sectionRef = useRef<HTMLElement>(null)
+    const timelineContainerRef = useRef<HTMLDivElement>(null)
     const pathRef = useRef<SVGPathElement>(null)
     const [scrollProgress, setScrollProgress] = useState(0)
     const [pathLength, setPathLength] = useState(0)
@@ -107,12 +108,12 @@ export function EducationTimeline() {
     }, [])
 
     useEffect(() => {
-        const section = sectionRef.current
-        if (!section) return
+        const container = timelineContainerRef.current
+        if (!container) return
 
         const scrollTrigger = ScrollTrigger.create({
-            trigger: section,
-            start: 'top top',
+            trigger: container,
+            start: 'top center',
             end: 'bottom bottom',
             scrub: 1.5,
             onUpdate: (self) => setScrollProgress(self.progress),
@@ -241,7 +242,7 @@ export function EducationTimeline() {
                 <SectionHeading title="Education" />
             </div>
 
-            <div className="relative" style={{ height: '1200vh' }}>
+            <div ref={timelineContainerRef} className="relative" style={{ height: '1200vh' }}>
                 <div className="sticky top-0 h-screen overflow-hidden">
                     <div className="h-full flex justify-center">
                         <div className="w-full max-w-3xl h-full relative px-4">
