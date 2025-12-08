@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useCallback } from 'react'
 import { SkillConfig } from '@/config/skills'
+import { SKILL_WAVE } from '@/config/colors'
 
 interface SkillDetailModalProps {
   skill: SkillConfig | null
@@ -61,35 +62,35 @@ export function SkillDetailModal({ skill, onClose }: SkillDetailModalProps) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.175 }}
           />
-          
+
           {/* Content container - camera zooms INTO this */}
           <motion.div
             className="absolute inset-0 flex items-center justify-center"
             style={{ transformStyle: 'preserve-3d' }}
-            initial={{ 
-              scale: 0.5, 
+            initial={{
+              scale: 0.5,
               rotateX: 15,
               z: -800,
               opacity: 0,
               filter: 'blur(10px)',
             }}
-            animate={{ 
-              scale: 1, 
+            animate={{
+              scale: 1,
               rotateX: 0,
               z: 0,
               opacity: 1,
               filter: 'blur(0px)',
             }}
-            exit={{ 
-              scale: 0.5, 
+            exit={{
+              scale: 0.5,
               rotateX: -10,
               z: -600,
               opacity: 0,
               filter: 'blur(8px)',
             }}
-            transition={{ 
-              type: 'spring', 
-              damping: 28, 
+            transition={{
+              type: 'spring',
+              damping: 28,
               stiffness: 234,
               mass: 0.8,
             }}
@@ -97,9 +98,9 @@ export function SkillDetailModal({ skill, onClose }: SkillDetailModalProps) {
             {/* Main content area - centered with left-aligned text */}
             <div className="w-full h-full flex items-center justify-center px-6">
               <div className="w-full max-w-xl">
-                
+
                 {/* Icon */}
-                <motion.div 
+                <motion.div
                   className="mb-4"
                   initial={{ opacity: 0, scale: 0.5, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -109,9 +110,9 @@ export function SkillDetailModal({ skill, onClose }: SkillDetailModalProps) {
                     {Icon && <Icon className="w-6 h-6 text-accent" strokeWidth={1.5} />}
                   </div>
                 </motion.div>
-                
+
                 {/* Title */}
-                <motion.h1 
+                <motion.h1
                   className="text-2xl md:text-3xl font-semibold text-text mb-1"
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -119,10 +120,10 @@ export function SkillDetailModal({ skill, onClose }: SkillDetailModalProps) {
                 >
                   {skill.title}
                 </motion.h1>
-                
+
                 {/* Experience */}
                 {skill.experience && (
-                  <motion.span 
+                  <motion.span
                     className="inline-block text-xs font-mono text-text-muted mb-6"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -131,9 +132,9 @@ export function SkillDetailModal({ skill, onClose }: SkillDetailModalProps) {
                     {skill.experience} experience
                   </motion.span>
                 )}
-                
+
                 {/* Description */}
-                <motion.p 
+                <motion.p
                   className="text-sm text-text-secondary leading-relaxed mb-6"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -141,10 +142,10 @@ export function SkillDetailModal({ skill, onClose }: SkillDetailModalProps) {
                 >
                   {skill.description}
                 </motion.p>
-                
+
                 {/* Use cases */}
                 {skill.useCases && skill.useCases.length > 0 && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3, duration: 0.3, ease: 'easeOut' }}
@@ -167,9 +168,9 @@ export function SkillDetailModal({ skill, onClose }: SkillDetailModalProps) {
                     </div>
                   </motion.div>
                 )}
-                
+
                 {/* Return button with diagonal shine wave */}
-                <motion.div 
+                <motion.div
                   className="mt-10"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -181,27 +182,27 @@ export function SkillDetailModal({ skill, onClose }: SkillDetailModalProps) {
                   >
                     {/* Base gray text */}
                     <span>return();</span>
-                    
+
                     {/* Bright purple overlay text with animated clip-path for diagonal sweep */}
                     <motion.span
                       className="absolute inset-0 pointer-events-none"
-                      style={{ 
-                        color: '#a78bfa',
-                        textShadow: '0 0 8px rgba(167, 139, 250, 0.8), 0 0 16px rgba(139, 92, 246, 0.5)'
+                      style={{
+                        color: SKILL_WAVE,
+                        textShadow: `0 0 8px ${SKILL_WAVE}cc, 0 0 16px ${SKILL_WAVE}80`
                       }}
-                      initial={{ 
+                      initial={{
                         clipPath: 'polygon(-40% 0%, -20% 0%, -60% 100%, -80% 100%)'
                       }}
-                      animate={{ 
+                      animate={{
                         clipPath: [
                           'polygon(-40% 0%, -20% 0%, -60% 100%, -80% 100%)',
                           'polygon(100% 0%, 140% 0%, 100% 100%, 60% 100%)',
                           'polygon(160% 0%, 180% 0%, 140% 100%, 120% 100%)'
                         ]
                       }}
-                      transition={{ 
-                        delay: 2, 
-                        duration: 0.6, 
+                      transition={{
+                        delay: 2,
+                        duration: 0.6,
                         ease: 'easeInOut',
                         times: [0, 0.7, 1],
                         repeat: Infinity,
@@ -212,7 +213,7 @@ export function SkillDetailModal({ skill, onClose }: SkillDetailModalProps) {
                     </motion.span>
                   </button>
                 </motion.div>
-                
+
               </div>
             </div>
           </motion.div>

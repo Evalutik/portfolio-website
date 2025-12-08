@@ -30,6 +30,33 @@ export const ACCENT_DARK = '#7c3aed'
 
 
 // =============================================================================
+// GLOW/EFFECT COLORS
+// Colors for visual effects like blobs, cursor glow, and skill modal wave
+// =============================================================================
+
+/** Toggle to enable/disable background blobs */
+export const BLOBS_ENABLED = false
+
+/** Blob color 1 - deep blue */
+export const BLOB_1 = '#8b5cf6'
+
+/** Blob color 2 - bright blue */
+export const BLOB_2 = '#8b5cf6'
+
+/** Blob color 3 - deep purple-blue */
+export const BLOB_3 = '#8b5cf6'
+
+/** Blob color 4 - light purple */
+export const BLOB_4 = '#a78bfa'
+
+/** Cursor glow - follows mouse */
+export const CURSOR_GLOW = ACCENT_DARK
+
+/** Skill modal return button wave */
+export const SKILL_WAVE = '#a78bfa'
+
+
+// =============================================================================
 // BACKGROUND COLORS
 // Surface and container background colors
 // =============================================================================

@@ -67,20 +67,18 @@ export function Navigation() {
     <>
       {/* Top Navigation Bar */}
       <motion.header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled ? 'py-3' : 'py-4'
-        }`}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'py-3' : 'py-4'
+          }`}
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.3 }}
       >
         <div className="max-w-3xl mx-auto px-4">
           <nav
-            className={`flex items-center justify-between px-4 py-2 rounded-full transition-all duration-300 border ${
-              scrolled
-                ? 'bg-surface/80 backdrop-blur-xl border-border shadow-lg'
-                : 'bg-transparent border-transparent'
-            }`}
+            className={`flex items-center justify-between px-4 py-2 rounded-full transition-all duration-300 border ${scrolled
+              ? 'bg-surface/80 backdrop-blur-xl border-border shadow-lg'
+              : 'bg-transparent border-transparent'
+              }`}
           >
             {/* Logo: appears only when header is scrolled (hero not visible) */}
             <Link
@@ -128,11 +126,10 @@ export function Navigation() {
                 <button
                   key={item.href}
                   onClick={() => handleClick(item.href)}
-                  className={`px-3 py-1.5 text-xs rounded-full transition-all duration-200 ${
-                    activeSection === item.href.replace('#', '')
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-text-secondary hover:text-text-primary hover:bg-surface-light'
-                  }`}
+                  className={`relative px-3 py-1.5 text-xs rounded-full transition-colors duration-200 ${activeSection === item.href.replace('#', '')
+                      ? 'bg-white/10 text-zinc-200 font-medium'
+                      : 'text-text-secondary hover:text-zinc-200'
+                    }`}
                 >
                   {item.label}
                 </button>
@@ -186,7 +183,7 @@ export function Navigation() {
               transition={{ duration: 0.2 }}
               onClick={() => setIsOpen(false)}
             />
-            
+
             {/* Menu */}
             <motion.div
               className="fixed top-20 left-4 right-4 z-50 md:hidden"
@@ -200,11 +197,10 @@ export function Navigation() {
                   <motion.button
                     key={item.href}
                     onClick={() => handleClick(item.href)}
-                    className={`w-full text-left px-4 py-3 text-sm rounded-xl transition-all duration-200 ${
-                      activeSection === item.href.replace('#', '')
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-text-secondary hover:text-text-primary hover:bg-surface-light'
-                    }`}
+                    className={`w-full text-left px-4 py-3 text-sm rounded-xl transition-all duration-200 ${activeSection === item.href.replace('#', '')
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-text-secondary hover:text-text-primary hover:bg-surface-light'
+                      }`}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 10 }}
@@ -221,9 +217,8 @@ export function Navigation() {
 
       {/* Side Progress Indicator - Desktop */}
       <motion.div
-        className={`fixed right-4 top-1/2 -translate-y-1/2 z-30 hidden lg:flex flex-col gap-2 transition-opacity duration-300 ${
-          scrolled && !isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
+        className={`fixed right-4 top-1/2 -translate-y-1/2 z-30 hidden lg:flex flex-col gap-2 transition-opacity duration-300 ${scrolled && !isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}
       >
         {navItems.map((item) => (
           <button
@@ -235,11 +230,10 @@ export function Navigation() {
               {item.label.toLowerCase()}
             </span>
             <div
-              className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${
-                activeSection === item.href.replace('#', '')
-                  ? 'bg-primary scale-125'
-                  : 'bg-border group-hover:bg-text-muted'
-              }`}
+              className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${activeSection === item.href.replace('#', '')
+                ? 'bg-primary scale-125'
+                : 'bg-border group-hover:bg-text-muted'
+                }`}
             />
           </button>
         ))}
