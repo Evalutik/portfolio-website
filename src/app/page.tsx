@@ -21,10 +21,10 @@ export default function Home() {
       <ParticlesBackground />
       <FloatingCode />
       <CursorGlow />
-      
+
       {/* Navigation */}
       <Navigation />
-      
+
       {/* Content */}
       <Hero />
       <SectionDivider variant="dots" />
@@ -35,7 +35,6 @@ export default function Home() {
       <Projects />
       <SectionDivider variant="wave" />
       <Education />
-      <SectionDivider variant="dots" />
       <Expertise />
       <SectionDivider variant="code" />
       <Contact />

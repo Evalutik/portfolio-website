@@ -5,6 +5,7 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { TimelineCard } from '@/components/ui/TimelineCard'
+import { MobileEducationTimeline } from './MobileEducationTimeline'
 import { PRIMARY, BORDER_LIGHT, TEXT_MUTED, SURFACE } from '@/config/colors'
 
 if (typeof window !== 'undefined') {
@@ -85,8 +86,20 @@ export function EducationTimeline() {
     const [scrollProgress, setScrollProgress] = useState(0)
     const [pathLength, setPathLength] = useState(0)
     const [markerPathProgress, setMarkerPathProgress] = useState<number[]>([])
+    const [isMobile, setIsMobile] = useState(false)
+
+    // Responsive detection
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768)
+        checkMobile()
+        window.addEventListener('resize', checkMobile)
+        return () => window.removeEventListener('resize', checkMobile)
+    }, [])
 
     useEffect(() => {
+        // Only calculate path for desktop mode
+        if (isMobile) return
+
         const path = pathRef.current
         if (!path) return
 
@@ -105,9 +118,12 @@ export function EducationTimeline() {
             progressValues.push((low + high) / 2)
         }
         setMarkerPathProgress(progressValues)
-    }, [])
+    }, [isMobile])
 
     useEffect(() => {
+        // Only setup scroll trigger for desktop mode
+        if (isMobile) return
+
         const container = timelineContainerRef.current
         if (!container) return
 
@@ -120,7 +136,7 @@ export function EducationTimeline() {
         })
 
         return () => scrollTrigger.kill()
-    }, [])
+    }, [isMobile])
 
     const currentState = useMemo(() => {
         if (markerPathProgress.length === 0 || pathLength === 0) {
@@ -134,7 +150,6 @@ export function EducationTimeline() {
         if (scrollProgress < FIRST_SEGMENT_END) {
             const segmentProgress = scrollProgress / FIRST_SEGMENT_END
             const marker1Progress = markerPathProgress[0]
-            const marker1Y = MARKER_Y_POSITIONS[0]
             const drawProgress = marker1Progress * segmentProgress
 
             // For first segment, keep camera fixed at top (offset 0)
@@ -242,41 +257,45 @@ export function EducationTimeline() {
                 <SectionHeading title="Education" />
             </div>
 
-            <div ref={timelineContainerRef} className="relative" style={{ height: '1200vh' }}>
-                <div className="sticky top-0 h-screen overflow-hidden">
-                    <div className="h-full flex justify-center">
-                        <div className="w-full max-w-3xl h-full relative px-4">
-                            <svg
-                                className="w-full h-full"
-                                viewBox={`0 ${viewBoxY} 750 ${VIEWPORT_HEIGHT}`}
-                                preserveAspectRatio="xMidYMid meet"
-                                fill="none"
-                                style={{ overflow: 'visible' }}
-                            >
-                                <path d={PATH_D} stroke={BORDER_LIGHT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.4" />
-                                <path ref={pathRef} d={PATH_D} stroke={PRIMARY} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                                {MARKER_Y_POSITIONS.map((y, index) => {
-                                    const x = MARKER_X_POSITIONS[index]
-                                    const isActive = markerPathProgress[index] !== undefined && currentState.drawProgress >= markerPathProgress[index]
-                                    return (
-                                        <circle key={index} cx={x} cy={y} r="8" fill={isActive ? PRIMARY : SURFACE} stroke={isActive ? PRIMARY : TEXT_MUTED} strokeWidth="2" />
-                                    )
-                                })}
-                                <circle cx={currentPoint.x} cy={currentPoint.y} r="6" fill={PRIMARY} />
-                            </svg>
+            {isMobile ? (
+                <MobileEducationTimeline educationData={educationData} />
+            ) : (
+                <div ref={timelineContainerRef} className="relative" style={{ height: '1200vh' }}>
+                    <div className="sticky top-0 h-screen overflow-hidden">
+                        <div className="h-full flex justify-center">
+                            <div className="w-full max-w-3xl h-full relative px-4">
+                                <svg
+                                    className="w-full h-full"
+                                    viewBox={`0 ${viewBoxY} 750 ${VIEWPORT_HEIGHT}`}
+                                    preserveAspectRatio="xMidYMid meet"
+                                    fill="none"
+                                    style={{ overflow: 'visible' }}
+                                >
+                                    <path d={PATH_D} stroke={BORDER_LIGHT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.4" />
+                                    <path ref={pathRef} d={PATH_D} stroke={PRIMARY} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                                    {MARKER_Y_POSITIONS.map((y, index) => {
+                                        const x = MARKER_X_POSITIONS[index]
+                                        const isActive = markerPathProgress[index] !== undefined && currentState.drawProgress >= markerPathProgress[index]
+                                        return (
+                                            <circle key={index} cx={x} cy={y} r="8" fill={isActive ? PRIMARY : SURFACE} stroke={isActive ? PRIMARY : TEXT_MUTED} strokeWidth="2" />
+                                        )
+                                    })}
+                                    <circle cx={currentPoint.x} cy={currentPoint.y} r="6" fill={PRIMARY} />
+                                </svg>
+                            </div>
                         </div>
-                    </div>
 
-                    {currentState.activeMarker >= 0 && currentState.activeMarker < educationData.length && (
-                        <TimelineCard
-                            {...educationData[currentState.activeMarker]}
-                            isVisible={currentState.cardVisible}
-                            cardProgress={0}
-                            opacity={currentState.cardOpacity}
-                        />
-                    )}
+                        {currentState.activeMarker >= 0 && currentState.activeMarker < educationData.length && (
+                            <TimelineCard
+                                {...educationData[currentState.activeMarker]}
+                                isVisible={currentState.cardVisible}
+                                cardProgress={0}
+                                opacity={currentState.cardOpacity}
+                            />
+                        )}
+                    </div>
                 </div>
-            </div>
+            )}
         </section>
     )
 }
