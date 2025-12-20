@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useCallback, useState, useRef, useMemo } from 'react'
 import dynamic from 'next/dynamic'
+import { X, Plus, Minus, Home } from 'lucide-react'
 import {
     allSkills,
     getSkillCategory,
@@ -32,15 +33,15 @@ interface SkillGraphModalProps {
     onSkillClick: (skill: SkillConfig) => void
 }
 
-// Category colors for nodes (matching the existing config)
+// Category colors for nodes
 const CATEGORY_COLORS: Record<string, string> = {
-    'Data Engineering': '#6366f1', // Indigo
-    'Programming': '#8b5cf6',      // Violet/Purple
-    'Cloud': '#06b6d4',            // Cyan
-    'ML & Analytics': '#f97316',   // Orange
+    'Data Engineering': '#6366f1',
+    'Programming': '#8b5cf6',
+    'Cloud': '#06b6d4',
+    'ML & Analytics': '#f97316',
 }
 
-// Extended node type that includes force-graph's runtime properties
+// Extended node type
 interface GraphNode {
     id: string
     name: string
@@ -49,7 +50,7 @@ interface GraphNode {
     color: string
     isHub?: boolean
     hubType?: 'main' | 'category'
-    // Force-graph runtime properties
+    shortDescription?: string
     x?: number
     y?: number
     vx?: number
@@ -67,37 +68,51 @@ interface GraphData {
     links: GraphLink[]
 }
 
-// Consistent panel styling matching website design system
+// Consistent panel styling
 const panelClass = "bg-surface/80 backdrop-blur-md border border-border rounded-xl"
+
+// Get short description from skill (use first sentence if no shortDescription)
+function getShortDescription(skill: SkillConfig): string {
+    if (skill.shortDescription) return skill.shortDescription
+    // Extract first sentence or first 50 chars
+    const firstSentence = skill.description.split('.')[0]
+    if (firstSentence.length <= 50) return firstSentence
+    return firstSentence.substring(0, 47) + '...'
+}
 
 /**
  * SkillGraphModal
- * 
- * Full-screen modal displaying a hierarchical force-directed graph
- * of skills with hub nodes for categories.
  */
 export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphModalProps) {
     const [searchQuery, setSearchQuery] = useState('')
     const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
     const [nodeVisibility, setNodeVisibility] = useState<Record<string, number>>({})
-    const [isFirstOpen, setIsFirstOpen] = useState(true)
+    const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null)
+    const [selectedSkill, setSelectedSkill] = useState<SkillConfig | null>(null)
+    const [hoveredNode, setHoveredNode] = useState<GraphNode | null>(null)
     const containerRef = useRef<HTMLDivElement>(null)
     const fgRef = useRef<any>(null)
+    const graphConfiguredRef = useRef(false)
 
-    // Handle escape key
+    // Handle escape key and clicks
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
         if (e.key === 'Escape') {
-            onClose()
+            if (selectedNode) {
+                setSelectedNode(null)
+                setSelectedSkill(null)
+            } else {
+                onClose()
+            }
         }
-    }, [onClose])
+    }, [onClose, selectedNode])
 
-    // Build graph data from skills and hubs - MEMOIZED ONCE
+    // Build graph data
     const graphData = useMemo<GraphData>(() => {
         const nodes: GraphNode[] = []
         const links: GraphLink[] = []
         const addedLinks = new Set<string>()
 
-        // 1. Add main hub nodes
+        // Main hub nodes
         graphHubs.filter(h => h.type === 'main').forEach(hub => {
             nodes.push({
                 id: hub.id,
@@ -110,7 +125,7 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
             })
         })
 
-        // 2. Add category hub nodes and link to main hubs
+        // Category hub nodes
         graphHubs.filter(h => h.type === 'category').forEach(hub => {
             nodes.push({
                 id: hub.id,
@@ -122,7 +137,6 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                 hubType: 'category',
             })
 
-            // Link category hub to main hub
             if (hub.parentHub) {
                 links.push({
                     source: hub.parentHub,
@@ -132,7 +146,7 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
             }
         })
 
-        // 3. Add skill nodes and link to their category hub
+        // Skill nodes
         allSkills.forEach(skill => {
             const category = getSkillCategory(skill.title) || 'Other'
             const hubId = categoryToHub[category]
@@ -145,9 +159,9 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                 val: Math.max(2, connectionCount * 0.8),
                 color: CATEGORY_COLORS[category] || PRIMARY,
                 isHub: false,
+                shortDescription: getShortDescription(skill),
             })
 
-            // Link skill to its category hub
             if (hubId) {
                 links.push({
                     source: hubId,
@@ -156,7 +170,6 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                 })
             }
 
-            // 4. Add skill-to-skill relationships (from relatedTo config)
             skill.relatedTo?.forEach(relatedTitle => {
                 if (allSkills.some(s => s.title === relatedTitle)) {
                     const linkKey = [skill.title, relatedTitle].sort().join('---')
@@ -175,7 +188,7 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
         return { nodes, links }
     }, [])
 
-    // Initialize node visibility when graph data is ready
+    // Initialize visibility
     useEffect(() => {
         const initialVisibility: Record<string, number> = {}
         graphData.nodes.forEach(node => {
@@ -184,46 +197,38 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
         setNodeVisibility(initialVisibility)
     }, [graphData])
 
-    // Update visibility based on search (smooth filtering without re-render)
+    // Search filtering
     useEffect(() => {
         const query = searchQuery.toLowerCase().trim()
         const newVisibility: Record<string, number> = {}
 
         if (!query) {
-            // No search - all nodes visible
             graphData.nodes.forEach(node => {
                 newVisibility[node.id] = 1
             })
         } else {
-            // Find matching nodes
             const matchingNodeIds = new Set(
                 graphData.nodes
                     .filter(node => node.name.toLowerCase().includes(query))
                     .map(node => node.id)
             )
 
-            // Find nodes connected to matching nodes
             const connectedNodeIds = new Set<string>()
             graphData.links.forEach(link => {
                 const sourceId = typeof link.source === 'string' ? link.source : link.source.id
                 const targetId = typeof link.target === 'string' ? link.target : link.target.id
 
-                if (matchingNodeIds.has(sourceId)) {
-                    connectedNodeIds.add(targetId)
-                }
-                if (matchingNodeIds.has(targetId)) {
-                    connectedNodeIds.add(sourceId)
-                }
+                if (matchingNodeIds.has(sourceId)) connectedNodeIds.add(targetId)
+                if (matchingNodeIds.has(targetId)) connectedNodeIds.add(sourceId)
             })
 
-            // Set visibility levels
             graphData.nodes.forEach(node => {
                 if (matchingNodeIds.has(node.id)) {
-                    newVisibility[node.id] = 1 // Full visibility for matches
+                    newVisibility[node.id] = 1
                 } else if (connectedNodeIds.has(node.id)) {
-                    newVisibility[node.id] = 0.5 // Dimmed for connected nodes
+                    newVisibility[node.id] = 0.5
                 } else {
-                    newVisibility[node.id] = 0.1 // Very dim for unrelated nodes
+                    newVisibility[node.id] = 0.1
                 }
             })
         }
@@ -231,47 +236,71 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
         setNodeVisibility(newVisibility)
     }, [searchQuery, graphData])
 
-    // Handle node click
+    // Handle node click - show info card instead of closing modal
     const handleNodeClick = useCallback((node: any) => {
-        // Don't process clicks on hub nodes
         if (node.isHub) return
 
         const skill = getSkillByTitle(node.id)
         if (skill) {
-            onClose()
-            setTimeout(() => onSkillClick(skill), 150)
+            setSelectedNode(node)
+            setSelectedSkill(skill)
         }
-    }, [onClose, onSkillClick])
+    }, [])
+
+    // Handle background click - deselect node
+    const handleBackgroundClick = useCallback(() => {
+        setSelectedNode(null)
+        setSelectedSkill(null)
+    }, [])
+
+    // Close skill card
+    const closeSkillCard = useCallback(() => {
+        setSelectedNode(null)
+        setSelectedSkill(null)
+    }, [])
+
+    // Zoom controls
+    const handleZoomIn = useCallback(() => {
+        if (fgRef.current) {
+            const currentZoom = fgRef.current.zoom()
+            fgRef.current.zoom(currentZoom * 1.3, 300)
+        }
+    }, [])
+
+    const handleZoomOut = useCallback(() => {
+        if (fgRef.current) {
+            const currentZoom = fgRef.current.zoom()
+            fgRef.current.zoom(currentZoom / 1.3, 300)
+        }
+    }, [])
+
+    const handleZoomReset = useCallback(() => {
+        if (fgRef.current) {
+            fgRef.current.zoomToFit(400, 50)
+        }
+    }, [])
 
     // Configure graph forces
     const configureForces = useCallback(() => {
         if (!fgRef.current) return
 
-        // Configure link distances based on type
-        // Hub-to-hub: longest, Hub-to-skill: medium, Skill-to-skill: shortest
         fgRef.current.d3Force('link')
             .distance((link: any) => {
-                if (link.linkType === 'hub-to-hub') return 150  // Long distance between main hub and sub-hubs
-                if (link.linkType === 'hub-to-skill') return 80 // Medium distance from sub-hub to skills
-                return 50 // Shorter for skill-to-skill
+                if (link.linkType === 'hub-to-hub') return 150
+                if (link.linkType === 'hub-to-skill') return 80
+                return 50
             })
             .strength((link: any) => {
-                // Make skill-to-skill links much weaker so they don't pull nodes away from their hubs
-                if (link.linkType === 'skill-to-skill') return 0.05 // Very weak - just for visual, not structural
-                if (link.linkType === 'hub-to-skill') return 0.8    // Strong - keeps skills near their hub
-                return 1 // Full strength for hub-to-hub
+                if (link.linkType === 'skill-to-skill') return 0.05
+                if (link.linkType === 'hub-to-skill') return 0.8
+                return 1
             })
 
-        // Stronger charge to spread nodes more
         fgRef.current.d3Force('charge').strength(-200)
-
-        // Add center force to keep graph centered
-        fgRef.current.d3Force('center', null) // Remove default center force
-
         fgRef.current.d3ReheatSimulation()
     }, [])
 
-    // Update dimensions on mount and resize
+    // Update dimensions and setup
     useEffect(() => {
         const updateDimensions = () => {
             if (containerRef.current) {
@@ -283,7 +312,7 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
         }
 
         if (isOpen) {
-            // Lock body scroll
+            graphConfiguredRef.current = false
             const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
             document.body.style.overflow = 'hidden'
             document.body.style.paddingRight = `${scrollbarWidth}px`
@@ -293,25 +322,24 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
             window.addEventListener('resize', updateDimensions)
             window.addEventListener('keydown', handleKeyDown)
 
-            // Configure forces and zoom when graph opens
+            // Configure forces and fit to screen
             const configureGraph = () => {
-                if (fgRef.current) {
+                if (fgRef.current && !graphConfiguredRef.current) {
                     configureForces()
-
-                    // Consistent zoom: always zoom to fit with same padding
-                    // Use smaller padding (10) to make graph appear larger
+                    // Wait for simulation to settle, then zoom to fit
                     setTimeout(() => {
                         if (fgRef.current) {
-                            fgRef.current.zoomToFit(400, 10)
+                            fgRef.current.zoomToFit(400, 50)
+                            graphConfiguredRef.current = true
                         }
-                    }, 100)
+                    }, 500)
                 }
             }
 
-            // Wait for graph to initialize
-            setTimeout(configureGraph, 300)
-            // Also configure after simulation settles
-            setTimeout(configureGraph, 1000)
+            // Initial configuration
+            setTimeout(configureGraph, 100)
+            // Backup configuration after simulation settles
+            setTimeout(configureGraph, 800)
 
             return () => {
                 document.body.style.overflow = ''
@@ -320,10 +348,16 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                 window.removeEventListener('resize', updateDimensions)
                 window.removeEventListener('keydown', handleKeyDown)
             }
+        } else {
+            // Reset state when modal closes
+            graphConfiguredRef.current = false
+            setSelectedNode(null)
+            setSelectedSkill(null)
+            setSearchQuery('')
         }
     }, [isOpen, handleKeyDown, configureForces])
 
-    // Get link visibility based on connected nodes
+    // Get link visibility
     const getLinkVisibility = useCallback((link: any) => {
         const sourceId = typeof link.source === 'string' ? link.source : link.source.id
         const targetId = typeof link.target === 'string' ? link.target : link.target.id
@@ -375,17 +409,17 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                             </div>
                         </div>
 
-                        {/* Close Button (Top Right) - Primary button style */}
+                        {/* Close Button (Top Right) - Secondary style */}
                         <div className="absolute top-5 right-5 z-10">
                             <button
                                 onClick={onClose}
-                                className="btn-primary-animated text-white font-medium rounded-lg text-sm px-4 py-2"
+                                className="btn-secondary-shine bg-surface border border-border text-text-primary hover:bg-surface-light hover:border-border-light font-medium rounded-lg text-sm px-4 py-2 transition-all duration-200"
                             >
                                 <span>Close</span>
                             </button>
                         </div>
 
-                        {/* Legend Panel (Right Center - Vertically Centered) */}
+                        {/* Legend Panel (Right Center) */}
                         <div className={`absolute right-5 top-1/2 -translate-y-1/2 z-10 ${panelClass} p-4 hidden md:block`}>
                             <span className="text-[10px] font-mono text-text-muted uppercase tracking-widest mb-3 block">
                                 {'// '}categories
@@ -400,6 +434,127 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                                 </div>
                             ))}
                         </div>
+
+                        {/* Zoom Controls (Bottom Right) */}
+                        <div className="absolute bottom-5 right-5 z-10 flex flex-col gap-2">
+                            <button
+                                onClick={handleZoomIn}
+                                className={`${panelClass} p-2 hover:bg-surface-light hover:border-border-light transition-all duration-200`}
+                                title="Zoom In"
+                            >
+                                <Plus className="w-4 h-4 text-text-muted" />
+                            </button>
+                            <button
+                                onClick={handleZoomOut}
+                                className={`${panelClass} p-2 hover:bg-surface-light hover:border-border-light transition-all duration-200`}
+                                title="Zoom Out"
+                            >
+                                <Minus className="w-4 h-4 text-text-muted" />
+                            </button>
+                            <button
+                                onClick={handleZoomReset}
+                                className={`${panelClass} p-2 hover:bg-surface-light hover:border-border-light transition-all duration-200`}
+                                title="Fit to Screen"
+                            >
+                                <Home className="w-4 h-4 text-text-muted" />
+                            </button>
+                        </div>
+
+                        {/* Skill Info Card (Left Side) */}
+                        <AnimatePresence>
+                            {selectedSkill && (
+                                <motion.div
+                                    className={`absolute left-5 top-1/2 -translate-y-1/2 z-20 ${panelClass} w-72 max-h-[70vh] overflow-hidden flex flex-col`}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    {/* Header */}
+                                    <div className="flex items-start justify-between p-4 border-b border-border">
+                                        <div className="flex items-center gap-3">
+                                            {selectedSkill.icon && (
+                                                <div className="p-2 bg-surface rounded-lg border border-border">
+                                                    <selectedSkill.icon className="w-5 h-5 text-accent" strokeWidth={1.5} />
+                                                </div>
+                                            )}
+                                            <div>
+                                                <h3 className="text-sm font-medium text-text-primary">
+                                                    {selectedSkill.title}
+                                                </h3>
+                                                {selectedSkill.experience && (
+                                                    <span className="text-[10px] font-mono text-text-muted">
+                                                        {selectedSkill.experience}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={closeSkillCard}
+                                            className="p-1 hover:bg-surface-light rounded transition-colors"
+                                        >
+                                            <X className="w-4 h-4 text-text-muted" />
+                                        </button>
+                                    </div>
+
+                                    {/* Scrollable Content */}
+                                    <div className="flex-1 overflow-y-auto p-4">
+                                        {/* Description */}
+                                        <p className="text-xs text-text-secondary leading-relaxed mb-4">
+                                            {selectedSkill.description}
+                                        </p>
+
+                                        {/* Use cases */}
+                                        {selectedSkill.useCases && selectedSkill.useCases.length > 0 && (
+                                            <div className="mb-4">
+                                                <span className="text-[10px] font-mono text-text-muted uppercase tracking-widest block mb-2">
+                                                    {'// '}use cases
+                                                </span>
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {selectedSkill.useCases.map((useCase) => (
+                                                        <span
+                                                            key={useCase}
+                                                            className="px-2 py-1 text-[10px] bg-surface border border-border rounded text-text-muted"
+                                                        >
+                                                            {useCase}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Related skills */}
+                                        {selectedSkill.relatedTo && selectedSkill.relatedTo.length > 0 && (
+                                            <div>
+                                                <span className="text-[10px] font-mono text-text-muted uppercase tracking-widest block mb-2">
+                                                    {'// '}related
+                                                </span>
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {selectedSkill.relatedTo.slice(0, 6).map((related) => (
+                                                        <span
+                                                            key={related}
+                                                            className="px-2 py-1 text-[10px] bg-surface border border-border rounded text-text-muted hover:border-accent hover:text-text-secondary cursor-pointer transition-colors"
+                                                            onClick={() => {
+                                                                const skill = getSkillByTitle(related)
+                                                                if (skill) {
+                                                                    const node = graphData.nodes.find(n => n.id === related)
+                                                                    if (node) {
+                                                                        setSelectedNode(node)
+                                                                        setSelectedSkill(skill)
+                                                                    }
+                                                                }
+                                                            }}
+                                                        >
+                                                            {related}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
                         {/* Graph container */}
                         <div ref={containerRef} className="absolute inset-0 z-0">
@@ -430,17 +585,17 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                                         const visibility = getLinkVisibility(link)
                                         if (visibility < 0.2) return 'transparent'
 
-                                        // Hub connections: more visible
                                         if (link.linkType === 'hub-to-hub' || link.linkType === 'hub-to-skill') {
                                             const alpha = Math.round(visibility * 0.3 * 255).toString(16).padStart(2, '0')
                                             return `${TEXT_MUTED}${alpha}`
                                         }
-                                        // Skill-to-skill: subtle
                                         const alpha = Math.round(visibility * 0.15 * 255).toString(16).padStart(2, '0')
                                         return `${ACCENT}${alpha}`
                                     }}
 
                                     onNodeClick={handleNodeClick}
+                                    onBackgroundClick={handleBackgroundClick}
+                                    onNodeHover={(node: any) => setHoveredNode(node || null)}
 
                                     nodeCanvasObject={(node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
                                         const visibility = nodeVisibility[node.id] ?? 1
@@ -450,8 +605,9 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                                         const isHub = node.isHub
                                         const isMainHub = node.hubType === 'main'
                                         const isCategoryHub = node.hubType === 'category'
+                                        const isSelected = selectedNode?.id === node.id
+                                        const isHovered = hoveredNode?.id === node.id
 
-                                        // Node size based on type
                                         let nodeSize: number
                                         if (isMainHub) {
                                             nodeSize = 10
@@ -463,13 +619,21 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
 
                                         ctx.globalAlpha = visibility
 
+                                        // Draw selection ring
+                                        if (isSelected) {
+                                            ctx.beginPath()
+                                            ctx.arc(node.x!, node.y!, nodeSize + 4, 0, 2 * Math.PI)
+                                            ctx.strokeStyle = ACCENT
+                                            ctx.lineWidth = 2
+                                            ctx.stroke()
+                                        }
+
                                         // Draw node circle
                                         ctx.beginPath()
                                         ctx.arc(node.x!, node.y!, nodeSize, 0, 2 * Math.PI)
                                         ctx.fillStyle = node.color
                                         ctx.fill()
 
-                                        // Add subtle border for hubs
                                         if (isHub) {
                                             ctx.strokeStyle = BORDER_LIGHT
                                             ctx.lineWidth = 1
@@ -487,6 +651,41 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                                             ctx.textBaseline = 'middle'
                                             ctx.fillStyle = isHub ? TEXT_PRIMARY : TEXT_SECONDARY
                                             ctx.fillText(label, node.x!, node.y! + nodeSize + fontSize * 0.8)
+                                        }
+
+                                        // Draw hover tooltip with short description
+                                        if (isHovered && !isHub && node.shortDescription && globalScale > 0.5) {
+                                            const tooltipText = node.shortDescription
+                                            const tooltipFontSize = Math.max(9 / globalScale, 2.5)
+                                            ctx.font = `${tooltipFontSize}px Inter, sans-serif`
+                                            const textWidth = ctx.measureText(tooltipText).width
+                                            const padding = 4 / globalScale
+                                            const tooltipY = node.y! + nodeSize + fontSize * 1.8
+
+                                            // Background
+                                            ctx.fillStyle = SURFACE
+                                            ctx.fillRect(
+                                                node.x! - textWidth / 2 - padding,
+                                                tooltipY - tooltipFontSize / 2 - padding,
+                                                textWidth + padding * 2,
+                                                tooltipFontSize + padding * 2
+                                            )
+
+                                            // Border
+                                            ctx.strokeStyle = BORDER
+                                            ctx.lineWidth = 0.5 / globalScale
+                                            ctx.strokeRect(
+                                                node.x! - textWidth / 2 - padding,
+                                                tooltipY - tooltipFontSize / 2 - padding,
+                                                textWidth + padding * 2,
+                                                tooltipFontSize + padding * 2
+                                            )
+
+                                            // Text
+                                            ctx.fillStyle = TEXT_MUTED
+                                            ctx.textAlign = 'center'
+                                            ctx.textBaseline = 'middle'
+                                            ctx.fillText(tooltipText, node.x!, tooltipY)
                                         }
 
                                         ctx.globalAlpha = 1

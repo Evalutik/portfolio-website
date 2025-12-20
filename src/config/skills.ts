@@ -18,6 +18,7 @@ export interface SkillConfig {
   title: string
   icon: LucideIcon
   description: string
+  shortDescription?: string  // 3-10 words for graph hover tooltip
   experience?: string
   useCases?: string[]
   relatedTo?: string[]
