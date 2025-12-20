@@ -1,9 +1,9 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { useEffect, useCallback, useState, useRef, useMemo, type LucideIcon } from 'react'
+import { useEffect, useCallback, useState, useRef, useMemo } from 'react'
 import dynamic from 'next/dynamic'
-import { X, Plus, Minus, Home, Search, Info } from 'lucide-react'
+import { X, Plus, Minus, Home, Search, Info, type LucideIcon } from 'lucide-react'
 import {
     allSkills,
     getSkillCategory,
@@ -11,7 +11,8 @@ import {
     SkillConfig,
     graphHubs,
     categoryToHub,
-    GraphHub
+    GraphHub,
+    CATEGORY_COLORS
 } from '@/config/skills'
 import {
     BACKGROUND,
@@ -34,13 +35,7 @@ interface SkillGraphModalProps {
     onSkillClick: (skill: SkillConfig) => void
 }
 
-// Category colors for nodes - carefully selected for visual distinction and harmony
-const CATEGORY_COLORS: Record<string, string> = {
-    'Data Engineering': '#3b82f6',  // Blue - reliable, technical
-    'Programming': '#a855f7',        // Purple - creative, logical 
-    'Cloud': '#06b6d4',              // Cyan - modern, scalable
-    'ML & Analytics': '#f59e0b',     // Amber - intelligent, warm
-}
+// CATEGORY_COLORS imported from '@/config/skills'
 
 // Extended node type
 interface GraphNode {

@@ -97,6 +97,17 @@ export const categoryToHub: Record<string, string> = {
   'ML & Analytics': 'hub-ml-analytics',
 }
 
+/**
+ * Category colors for visual distinction
+ * Used in Skill Galaxy graph and skill detail modals
+ */
+export const CATEGORY_COLORS: Record<string, string> = {
+  'Data Engineering': '#3b82f6',  // Blue - reliable, technical
+  'Programming': '#a855f7',        // Purple - creative, logical 
+  'Cloud': '#06b6d4',              // Cyan - modern, scalable
+  'ML & Analytics': '#f59e0b',     // Amber - intelligent, warm
+}
+
 // =============================================================================
 // ROW 1: Data Engineering & ETL
 // =============================================================================

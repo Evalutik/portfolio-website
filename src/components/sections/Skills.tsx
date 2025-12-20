@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { SkillsMarquee3D } from '@/components/ui/SkillsMarquee3D'
 import { SkillTag } from '@/components/ui/SkillTag'
@@ -22,6 +22,16 @@ export function Skills() {
   const handleGraphSkillClick = (skill: SkillConfig) => {
     setSelectedSkill(skill)
   }
+
+  // Handle skill change from related skills - close then reopen with animation
+  const handleSkillChange = useCallback((newSkill: SkillConfig) => {
+    // Close current modal
+    setSelectedSkill(null)
+    // Wait for close animation to complete, then open new skill
+    setTimeout(() => {
+      setSelectedSkill(newSkill)
+    }, 300)
+  }, [])
 
   const rows = skillRows.map(row => ({
     skills: row.skills.map((s, i) => (
@@ -55,6 +65,7 @@ export function Skills() {
       <SkillDetailModal
         skill={selectedSkill}
         onClose={() => setSelectedSkill(null)}
+        onSkillChange={handleSkillChange}
       />
 
       {/* Skill Graph Modal */}

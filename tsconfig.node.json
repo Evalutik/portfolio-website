@@ -3,7 +3,8 @@
     "composite": true,
     "skipLibCheck": true,
     "strict": true,
-    "noEmit": true,
+    "emitDeclarationOnly": true,
+    "declaration": true,
     "esModuleInterop": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
@@ -11,5 +12,8 @@
     "resolveJsonModule": true,
     "jsx": "react-jsx"
   },
-  "include": ["next.config.js", "postcss.config.js"]
+  "include": [
+    "next.config.js",
+    "postcss.config.js"
+  ]
 }

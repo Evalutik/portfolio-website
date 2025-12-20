@@ -2,12 +2,13 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useCallback } from 'react'
-import { SkillConfig } from '@/config/skills'
+import { SkillConfig, getSkillCategory, getSkillByTitle, CATEGORY_COLORS } from '@/config/skills'
 import { SKILL_WAVE } from '@/config/colors'
 
 interface SkillDetailModalProps {
   skill: SkillConfig | null
   onClose: () => void
+  onSkillChange?: (skill: SkillConfig) => void
 }
 
 /**
@@ -17,7 +18,7 @@ interface SkillDetailModalProps {
  * Uses perspective and translateZ for depth effect.
  * Matches the dark theme with accent glows.
  */
-export function SkillDetailModal({ skill, onClose }: SkillDetailModalProps) {
+export function SkillDetailModal({ skill, onClose, onSkillChange }: SkillDetailModalProps) {
   // Handle escape key
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') {
@@ -30,6 +31,7 @@ export function SkillDetailModal({ skill, onClose }: SkillDetailModalProps) {
       // Get scrollbar width before hiding
       const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
       document.body.style.overflow = 'hidden'
+      document.documentElement.style.overflow = 'hidden'
       // Add padding to compensate for scrollbar disappearing
       document.body.style.paddingRight = `${scrollbarWidth}px`
       window.addEventListener('keydown', handleKeyDown)
@@ -37,11 +39,22 @@ export function SkillDetailModal({ skill, onClose }: SkillDetailModalProps) {
     return () => {
       document.body.style.overflow = ''
       document.body.style.paddingRight = ''
+      document.documentElement.style.overflow = ''
       window.removeEventListener('keydown', handleKeyDown)
     }
   }, [skill, handleKeyDown])
 
   const Icon = skill?.icon
+  const category = skill ? getSkillCategory(skill.title) : undefined
+  const categoryColor = category ? CATEGORY_COLORS[category] : undefined
+
+  // Handle related skill click
+  const handleRelatedClick = useCallback((relatedTitle: string) => {
+    const relatedSkill = getSkillByTitle(relatedTitle)
+    if (relatedSkill && onSkillChange) {
+      onSkillChange(relatedSkill)
+    }
+  }, [onSkillChange])
 
   return (
     <AnimatePresence>
@@ -124,13 +137,31 @@ export function SkillDetailModal({ skill, onClose }: SkillDetailModalProps) {
                 {/* Experience */}
                 {skill.experience && (
                   <motion.span
-                    className="inline-block text-xs font-mono text-text-muted mb-6"
+                    className="inline-block text-xs font-mono text-text-muted mb-3"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.2, duration: 0.3 }}
                   >
                     {skill.experience} experience
                   </motion.span>
+                )}
+
+                {/* Category with colored dot */}
+                {category && categoryColor && (
+                  <motion.div
+                    className="flex items-center gap-2 mb-6"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.22, duration: 0.3 }}
+                  >
+                    <div
+                      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: categoryColor }}
+                    />
+                    <span className="text-xs text-text-muted">
+                      {category}
+                    </span>
+                  </motion.div>
                 )}
 
                 {/* Description */}
@@ -143,9 +174,10 @@ export function SkillDetailModal({ skill, onClose }: SkillDetailModalProps) {
                   {skill.description}
                 </motion.p>
 
-                {/* Use cases */}
+                {/* Use cases - non-interactive styling */}
                 {skill.useCases && skill.useCases.length > 0 && (
                   <motion.div
+                    className="mb-6"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3, duration: 0.3, ease: 'easeOut' }}
@@ -157,7 +189,7 @@ export function SkillDetailModal({ skill, onClose }: SkillDetailModalProps) {
                       {skill.useCases.map((useCase, index) => (
                         <motion.span
                           key={useCase}
-                          className="px-2 py-1 text-xs bg-surface border border-border rounded text-text-muted hover:border-accent hover:text-text-secondary transition-colors cursor-default"
+                          className="px-2 py-1 text-xs bg-surface border border-border rounded text-text-muted"
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           transition={{ delay: 0.35 + index * 0.03, duration: 0.2 }}
@@ -169,12 +201,39 @@ export function SkillDetailModal({ skill, onClose }: SkillDetailModalProps) {
                   </motion.div>
                 )}
 
+                {/* Related skills - clickable */}
+                {skill.relatedTo && skill.relatedTo.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4, duration: 0.3, ease: 'easeOut' }}
+                  >
+                    <h3 className="text-[10px] font-mono text-text-muted uppercase tracking-widest mb-2">
+                      {'// '}related
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {skill.relatedTo.slice(0, 6).map((related, index) => (
+                        <motion.span
+                          key={related}
+                          onClick={() => handleRelatedClick(related)}
+                          className="px-2 py-1 text-xs bg-surface border border-border rounded text-text-muted hover:border-accent hover:text-text-secondary cursor-pointer transition-colors"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.45 + index * 0.03, duration: 0.2 }}
+                        >
+                          {related}
+                        </motion.span>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+
                 {/* Return button with diagonal shine wave */}
                 <motion.div
                   className="mt-10"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 0.45, duration: 0.3 }}
+                  transition={{ delay: 0.55, duration: 0.3 }}
                 >
                   <button
                     onClick={onClose}
