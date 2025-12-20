@@ -9,7 +9,7 @@ const MarqueeContext = createContext<{
   hoveredRow: number | null
   pausedRow: number | null
   setHoveredRow: (row: number | null) => void
-}>({ hoveredRow: null, pausedRow: null, setHoveredRow: () => {} })
+}>({ hoveredRow: null, pausedRow: null, setHoveredRow: () => { } })
 
 interface SkillMarqueeProps {
   children: React.ReactNode[]
@@ -35,7 +35,7 @@ function SkillMarquee({ children, direction = 'left', baseSpeed = 0.055, rowInde
   const lastScrollTimeRef = useRef(0)
   const currentSpeedMultiplierRef = useRef(1)
   const { pausedRow, setHoveredRow } = useContext(MarqueeContext)
-  
+
   const isPaused = pausedRow === rowIndex
 
   // Measure content width
@@ -44,7 +44,9 @@ function SkillMarquee({ children, direction = 'left', baseSpeed = 0.055, rowInde
       if (innerRef.current) {
         const firstSet = innerRef.current.querySelector('[data-set="first"]') as HTMLElement
         if (firstSet) {
-          setContentWidth(firstSet.offsetWidth)
+          const newWidth = firstSet.offsetWidth
+          // Only update if width actually changed to avoid re-renders
+          setContentWidth(prev => prev !== newWidth ? newWidth : prev)
         }
       }
     }
@@ -59,7 +61,7 @@ function SkillMarquee({ children, direction = 'left', baseSpeed = 0.055, rowInde
       const now = performance.now()
       const currentY = window.scrollY
       const deltaTime = now - lastScrollTimeRef.current
-      
+
       if (deltaTime > 0 && lastScrollTimeRef.current > 0) {
         // Calculate velocity in pixels per millisecond
         const deltaY = Math.abs(currentY - lastScrollYRef.current)
@@ -67,11 +69,11 @@ function SkillMarquee({ children, direction = 'left', baseSpeed = 0.055, rowInde
         // Smooth the velocity a bit to avoid jitter
         scrollVelocityRef.current = scrollVelocityRef.current * 0.3 + velocity * 0.7
       }
-      
+
       lastScrollYRef.current = currentY
       lastScrollTimeRef.current = now
     }
-    
+
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => {
       window.removeEventListener('scroll', handleScroll)
@@ -81,28 +83,28 @@ function SkillMarquee({ children, direction = 'left', baseSpeed = 0.055, rowInde
   // Animate position using pixel values for seamless loop
   useAnimationFrame((time, delta) => {
     if (isPaused || contentWidth === 0) return
-    
+
     // Decay velocity over time when not scrolling
     const timeSinceScroll = performance.now() - lastScrollTimeRef.current
     if (timeSinceScroll > 16) {
       // Decay velocity when no scroll events are coming
       scrollVelocityRef.current *= 0.92
     }
-    
+
     // Map scroll velocity to speed multiplier
     // Even tiny scroll movements should trigger a boost
     // velocity ~0.05+ px/ms = noticeable scroll
     const velocity = scrollVelocityRef.current
-    const targetMultiplier = 1 + Math.min(velocity * 20, 3.125) // More sensitive, max ~4.1x speed (25% more)
-    
+    const targetMultiplier = 1 + Math.min(velocity * 35, 4.06) // faster scroll response, max ~5x speed
+
     // Smoothly interpolate current speed towards target
     const lerpFactor = 0.15
     currentSpeedMultiplierRef.current += (targetMultiplier - currentSpeedMultiplierRef.current) * lerpFactor
-    
+
     const speed = baseSpeed * currentSpeedMultiplierRef.current
     // Delta-based for frame-rate independence
     const movement = (delta / 16) * speed * contentWidth * 0.001
-    
+
     if (direction === 'left') {
       xPosRef.current -= movement
       if (xPosRef.current <= -contentWidth) {
@@ -114,7 +116,7 @@ function SkillMarquee({ children, direction = 'left', baseSpeed = 0.055, rowInde
         xPosRef.current -= contentWidth
       }
     }
-    
+
     if (innerRef.current) {
       innerRef.current.style.transform = `translate3d(${xPosRef.current}px, 0, 0)`
     }
@@ -130,20 +132,20 @@ function SkillMarquee({ children, direction = 'left', baseSpeed = 0.055, rowInde
   const handleMouseEnter = () => {
     setHoveredRow(rowIndex)
   }
-  
+
   const handleMouseLeave = () => {
     setHoveredRow(null)
   }
 
   return (
-    <div 
-      ref={containerRef} 
+    <div
+      ref={containerRef}
       className="select-none py-1.5 relative"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       style={{ zIndex: 10 }}
     >
-      <div 
+      <div
         ref={innerRef}
         className="flex gap-2"
         style={{ willChange: 'transform', backfaceVisibility: 'hidden' }}
@@ -212,7 +214,7 @@ export function SkillsMarquee3D({ rows }: SkillsMarquee3DProps) {
 
   return (
     <MarqueeContext.Provider value={{ hoveredRow, pausedRow, setHoveredRow }}>
-      <div 
+      <div
         ref={containerRef}
         className="relative py-16 select-none"
         style={{
@@ -235,8 +237,8 @@ export function SkillsMarquee3D({ rows }: SkillsMarquee3DProps) {
           {/* Rows container */}
           <div>
             {rows.map((row, index) => (
-              <SkillMarquee 
-                key={index} 
+              <SkillMarquee
+                key={index}
                 direction={row.direction}
                 baseSpeed={0.055}
                 rowIndex={index}
