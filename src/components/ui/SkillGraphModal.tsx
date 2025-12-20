@@ -80,6 +80,7 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
     const [searchQuery, setSearchQuery] = useState('')
     const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
     const [nodeVisibility, setNodeVisibility] = useState<Record<string, number>>({})
+    const [isFirstOpen, setIsFirstOpen] = useState(true)
     const containerRef = useRef<HTMLDivElement>(null)
     const fgRef = useRef<any>(null)
 
@@ -242,6 +243,34 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
         }
     }, [onClose, onSkillClick])
 
+    // Configure graph forces
+    const configureForces = useCallback(() => {
+        if (!fgRef.current) return
+
+        // Configure link distances based on type
+        // Hub-to-hub: longest, Hub-to-skill: medium, Skill-to-skill: shortest
+        fgRef.current.d3Force('link')
+            .distance((link: any) => {
+                if (link.linkType === 'hub-to-hub') return 150  // Long distance between main hub and sub-hubs
+                if (link.linkType === 'hub-to-skill') return 80 // Medium distance from sub-hub to skills
+                return 50 // Shorter for skill-to-skill
+            })
+            .strength((link: any) => {
+                // Make skill-to-skill links much weaker so they don't pull nodes away from their hubs
+                if (link.linkType === 'skill-to-skill') return 0.05 // Very weak - just for visual, not structural
+                if (link.linkType === 'hub-to-skill') return 0.8    // Strong - keeps skills near their hub
+                return 1 // Full strength for hub-to-hub
+            })
+
+        // Stronger charge to spread nodes more
+        fgRef.current.d3Force('charge').strength(-200)
+
+        // Add center force to keep graph centered
+        fgRef.current.d3Force('center', null) // Remove default center force
+
+        fgRef.current.d3ReheatSimulation()
+    }, [])
+
     // Update dimensions on mount and resize
     useEffect(() => {
         const updateDimensions = () => {
@@ -264,22 +293,25 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
             window.addEventListener('resize', updateDimensions)
             window.addEventListener('keydown', handleKeyDown)
 
-            // Adjust forces and zoom when graph opens
-            setTimeout(() => {
+            // Configure forces and zoom when graph opens
+            const configureGraph = () => {
                 if (fgRef.current) {
-                    // Configure forces for hub layout
-                    fgRef.current.d3Force('link').distance((link: any) => {
-                        if (link.linkType === 'hub-to-hub') return 80
-                        if (link.linkType === 'hub-to-skill') return 60
-                        return 45 // skill-to-skill
-                    })
-                    fgRef.current.d3Force('charge').strength(-120)
-                    fgRef.current.d3ReheatSimulation()
+                    configureForces()
 
-                    // Zoom to fit with padding
-                    fgRef.current.zoomToFit(400, 40)
+                    // Consistent zoom: always zoom to fit with same padding
+                    // Use smaller padding (10) to make graph appear larger
+                    setTimeout(() => {
+                        if (fgRef.current) {
+                            fgRef.current.zoomToFit(400, 10)
+                        }
+                    }, 100)
                 }
-            }, 200)
+            }
+
+            // Wait for graph to initialize
+            setTimeout(configureGraph, 300)
+            // Also configure after simulation settles
+            setTimeout(configureGraph, 1000)
 
             return () => {
                 document.body.style.overflow = ''
@@ -289,7 +321,7 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                 window.removeEventListener('keydown', handleKeyDown)
             }
         }
-    }, [isOpen, handleKeyDown])
+    }, [isOpen, handleKeyDown, configureForces])
 
     // Get link visibility based on connected nodes
     const getLinkVisibility = useCallback((link: any) => {
@@ -329,26 +361,32 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                         exit={{ opacity: 0, scale: 0.96 }}
                         transition={{ duration: 0.2 }}
                     >
-                        {/* Search Panel (Top Left) */}
-                        <div className={`absolute top-5 left-5 z-10 ${panelClass} p-4`}>
-                            <div className="flex items-center gap-3">
-                                <h2 className="text-sm font-medium text-text-primary whitespace-nowrap">
-                                    Skill Galaxy
-                                </h2>
-                                <div className="h-4 w-px bg-border hidden sm:block" />
+                        {/* Search Panel (Top Center) */}
+                        <div className="absolute top-5 left-1/2 -translate-x-1/2 z-10">
+                            <div className={`${panelClass} px-3 py-2`}>
                                 <input
                                     type="text"
                                     placeholder="Search skills..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     autoFocus
-                                    className="bg-transparent text-sm text-text-primary focus:outline-none placeholder:text-text-muted min-w-[120px]"
+                                    className="bg-transparent text-sm text-text-primary focus:outline-none placeholder:text-text-muted w-36"
                                 />
                             </div>
                         </div>
 
-                        {/* Legend Panel (Top Right) */}
-                        <div className={`absolute top-5 right-5 z-10 ${panelClass} p-4 hidden md:block`}>
+                        {/* Close Button (Top Right) - Primary button style */}
+                        <div className="absolute top-5 right-5 z-10">
+                            <button
+                                onClick={onClose}
+                                className="btn-primary-animated text-white font-medium rounded-lg text-sm px-4 py-2"
+                            >
+                                <span>Close</span>
+                            </button>
+                        </div>
+
+                        {/* Legend Panel (Right Center - Vertically Centered) */}
+                        <div className={`absolute right-5 top-1/2 -translate-y-1/2 z-10 ${panelClass} p-4 hidden md:block`}>
                             <span className="text-[10px] font-mono text-text-muted uppercase tracking-widest mb-3 block">
                                 {'// '}categories
                             </span>
@@ -476,16 +514,6 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                                     d3VelocityDecay={0.3}
                                 />
                             )}
-                        </div>
-
-                        {/* Return Button (Bottom Center) */}
-                        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-10">
-                            <button
-                                onClick={onClose}
-                                className={`${panelClass} btn-secondary-shine px-5 py-2.5 font-mono text-xs text-text-muted hover:text-text-primary hover:border-border-light transition-all duration-200`}
-                            >
-                                <span>return();</span>
-                            </button>
                         </div>
                     </motion.div>
                 </motion.div>
