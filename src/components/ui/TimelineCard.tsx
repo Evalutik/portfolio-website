@@ -57,7 +57,7 @@ export function TimelineCard({
                 <GlowCard>
                     <div className="p-5">
                         {/* Year badge */}
-                        <div className="inline-block px-3 py-1 mb-3 text-xs font-mono rounded-full bg-primary/10 text-primary border border-primary/20">
+                        <div className="inline-block px-3 py-1 mb-3 text-xs font-mono rounded-full bg-accent/10 text-accent border border-accent/20">
                             {year}
                         </div>
 
@@ -67,7 +67,7 @@ export function TimelineCard({
                         </h3>
 
                         {/* Subtitle */}
-                        <p className="text-sm text-primary mb-2">
+                        <p className="text-sm text-accent mb-2">
                             {subtitle}
                         </p>
 

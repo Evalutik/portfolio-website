@@ -157,7 +157,7 @@ export function SkillDetailModal({ skill, onClose }: SkillDetailModalProps) {
                       {skill.useCases.map((useCase, index) => (
                         <motion.span
                           key={useCase}
-                          className="px-2 py-1 text-xs bg-surface border border-border rounded text-text-muted hover:border-accent-dark hover:text-text-secondary transition-colors cursor-default"
+                          className="px-2 py-1 text-xs bg-surface border border-border rounded text-text-muted hover:border-accent hover:text-text-secondary transition-colors cursor-default"
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           transition={{ delay: 0.35 + index * 0.03, duration: 0.2 }}
@@ -178,7 +178,7 @@ export function SkillDetailModal({ skill, onClose }: SkillDetailModalProps) {
                 >
                   <button
                     onClick={onClose}
-                    className="group font-mono text-xs text-text-muted hover:text-accent-dark transition-colors relative"
+                    className="group font-mono text-xs text-text-muted hover:text-accent transition-colors relative"
                   >
                     {/* Base gray text */}
                     <span>return();</span>

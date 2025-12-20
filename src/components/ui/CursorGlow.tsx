@@ -1,13 +1,13 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { CURSOR_GLOW } from '@/config/colors'
+import { CURSOR_GLOW, CURSOR_GLOW_ENABLED, CURSOR_GRID_ENABLED } from '@/config/colors'
 
 /**
  * CursorGlow
  * 
  * A subtle glow effect that follows the mouse cursor.
- * Dimmer by default, brighter when cursor is moving.
+ * The illuminated grid matches the parallax background grid movement.
  * Hidden on touch devices.
  */
 export function CursorGlow() {
@@ -30,12 +30,6 @@ export function CursorGlow() {
     // Initialize at center bottom of screen
     let mouseX = window.innerWidth / 2
     let mouseY = window.innerHeight
-    // Single shared position for both lights
-    let currentX = mouseX
-    let currentY = mouseY
-    // Velocity for spring physics (overshoot effect)
-    let velocityX = 0
-    let velocityY = 0
     let rafId: number
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -59,38 +53,25 @@ export function CursorGlow() {
       setIsVisible(true)
     }
 
-    // Spring physics animation - both lights share same position
+    // Direct cursor following animation - no delay
     const animate = () => {
-      // Spring constants - one subtle overshoot then settle
-      const stiffness = 0.035  // Pull strength toward cursor
-      const damping = 0.82     // Higher = fewer bounces
+      // Read scroll position directly each frame to track browser's native inertia
+      // 5% scroll speed = nearly sticky, matches ParallaxGrid
+      const parallaxOffset = window.scrollY * 0.05
 
-      // Calculate spring force toward mouse position
-      const forceX = (mouseX - currentX) * stiffness
-      const forceY = (mouseY - currentY) * stiffness
-
-      // Apply force to velocity (velocity accumulates momentum)
-      velocityX += forceX
-      velocityY += forceY
-
-      // Apply damping to velocity
-      velocityX *= damping
-      velocityY *= damping
-
-      // Update position
-      currentX += velocityX
-      currentY += velocityY
-
-      // Update grid mask position
+      // Update grid - apply same parallax as background grid
       if (gridRef.current) {
-        const maskGradient = `radial-gradient(circle 168px at ${currentX}px ${currentY}px, black 0%, transparent 70%)`
+        // The mask follows cursor, but background position syncs with parallax grid
+        const maskGradient = `radial-gradient(circle 168px at ${mouseX}px ${mouseY}px, black 0%, transparent 70%)`
         gridRef.current.style.maskImage = maskGradient
         gridRef.current.style.webkitMaskImage = maskGradient
+        // Sync background position with parallax grid movement
+        gridRef.current.style.backgroundPosition = `0px ${-parallaxOffset}px`
       }
 
-      // Update glow position - same as grid
+      // Update glow position directly to mouse position
       if (glowRef.current) {
-        glowRef.current.style.transform = `translate(${currentX}px, ${currentY}px)`
+        glowRef.current.style.transform = `translate(${mouseX}px, ${mouseY}px)`
       }
 
       rafId = requestAnimationFrame(animate)
@@ -116,48 +97,52 @@ export function CursorGlow() {
 
   return (
     <>
-      {/* Illuminated grid layer - brighter grid visible only near cursor */}
-      <div
-        ref={gridRef}
-        className="fixed inset-0 pointer-events-none"
-        style={{
-          backgroundImage: `
-            linear-gradient(${CURSOR_GLOW}99 1px, transparent 1px),
-            linear-gradient(90deg, ${CURSOR_GLOW}99 1px, transparent 1px)
-          `,
-          backgroundSize: '64px 64px',
-          opacity: isVisible ? (isMoving ? 0.8 : 0.4) : 0,
-          transition: isMoving ? 'opacity 0.2s ease' : 'opacity 5s ease',
-          zIndex: -9,
-          // Mask will be set via JS
-          maskImage: 'radial-gradient(circle 168px at 50% 50%, black 0%, transparent 70%)',
-          WebkitMaskImage: 'radial-gradient(circle 168px at 50% 50%, black 0%, transparent 70%)',
-        }}
-      />
-      {/* Normal cursor glow */}
-      <div
-        ref={glowRef}
-        className="fixed top-0 left-0 pointer-events-none"
-        style={{
-          willChange: 'transform',
-          zIndex: -8,
-        }}
-      >
+      {/* Illuminated grid layer - synced with parallax grid */}
+      {CURSOR_GRID_ENABLED && (
         <div
-          className="absolute pointer-events-none"
+          ref={gridRef}
+          className="fixed inset-0 pointer-events-none"
           style={{
-            width: '224px',
-            height: '224px',
-            left: '-112px',
-            top: '-112px',
-            background: `radial-gradient(circle, ${CURSOR_GLOW}14 0%, ${CURSOR_GLOW}08 35%, transparent 55%)`,
-            borderRadius: '50%',
-            opacity: isVisible ? (isMoving ? 1 : 0.4) : 0,
-            transition: isMoving ? 'opacity 0.2s ease' : 'opacity 3s ease',
-            filter: 'blur(12px)',
+            backgroundImage: `
+              linear-gradient(${CURSOR_GLOW} 1px, transparent 1px),
+              linear-gradient(90deg, ${CURSOR_GLOW} 1px, transparent 1px)
+            `,
+            backgroundSize: '64px 64px',
+            opacity: isVisible ? (isMoving ? 0.8 : 0.4) : 0,
+            transition: isMoving ? 'opacity 0.2s ease' : 'opacity 5s ease',
+            zIndex: -9,
+            // Mask will be set via JS
+            maskImage: 'radial-gradient(circle 168px at 50% 50%, black 0%, transparent 70%)',
+            WebkitMaskImage: 'radial-gradient(circle 168px at 50% 50%, black 0%, transparent 70%)',
           }}
         />
-      </div>
+      )}
+      {/* Normal cursor glow */}
+      {CURSOR_GLOW_ENABLED && (
+        <div
+          ref={glowRef}
+          className="fixed top-0 left-0 pointer-events-none"
+          style={{
+            willChange: 'transform',
+            zIndex: -8,
+          }}
+        >
+          <div
+            className="absolute pointer-events-none"
+            style={{
+              width: '224px',
+              height: '224px',
+              left: '-112px',
+              top: '-112px',
+              background: `radial-gradient(circle, ${CURSOR_GLOW}14 0%, ${CURSOR_GLOW}08 35%, transparent 55%)`,
+              borderRadius: '50%',
+              opacity: isVisible ? (isMoving ? 1 : 0.4) : 0,
+              transition: isMoving ? 'opacity 0.2s ease' : 'opacity 3s ease',
+              filter: 'blur(12px)',
+            }}
+          />
+        </div>
+      )}
     </>
   )
 }

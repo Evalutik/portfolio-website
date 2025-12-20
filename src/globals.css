@@ -117,7 +117,7 @@ body {
 
 /* Gradient text effect */
 .text-gradient {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-dark to-accent;
 }
 
 /* Monospace code styling */

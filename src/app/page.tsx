@@ -11,12 +11,13 @@ import { GlowingBlobs } from '@/components/ui/GlowingBlobs'
 import { SectionDivider } from '@/components/ui/SectionDivider'
 import { FloatingCode } from '@/components/ui/FloatingCode'
 import { CursorGlow } from '@/components/ui/CursorGlow'
+import { ParallaxGrid } from '@/components/ui/ParallaxGrid'
 
 export default function Home() {
   return (
     <main className="relative min-h-screen">
       {/* Background effects - layered */}
-      <div className="fixed inset-0 bg-grid opacity-20 pointer-events-none" style={{ zIndex: -10 }} />
+      <ParallaxGrid />
       <GlowingBlobs />
       <ParticlesBackground />
       <FloatingCode />
@@ -27,7 +28,7 @@ export default function Home() {
 
       {/* Content */}
       <Hero />
-      <SectionDivider variant="dots" />
+      <SectionDivider variant="spacer" />
       <About />
       <div className="py-8" /> {/* Simple spacer before Skills */}
       <Skills />

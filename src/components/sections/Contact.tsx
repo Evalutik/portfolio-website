@@ -8,8 +8,8 @@ import { Github, Linkedin } from 'lucide-react'
 export function Contact() {
   return (
     <section id="contact" className="py-16 px-4 max-w-3xl mx-auto">
-      <SectionHeading 
-        title="Contact" 
+      <SectionHeading
+        title="Contact"
         subtitle="Open to new opportunities and collaborations."
       />
 
@@ -30,28 +30,28 @@ export function Contact() {
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-3">
-            <a 
-              href="mailto:andreyfedyna@gmail.com" 
+            <a
+              href="mailto:andreyfedyna@gmail.com"
               className="group inline-flex items-center gap-2 text-sm transition-colors"
             >
               <span className="text-text-muted">Email</span>
-              <span className="text-text-primary group-hover:text-primary transition-colors">andreyfedyna@gmail.com</span>
+              <span className="text-text-primary group-hover:text-accent transition-colors">andreyfedyna@gmail.com</span>
             </a>
             <div className="flex items-center gap-2">
-              <a 
-                href="https://linkedin.com" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="flex items-center justify-center w-7 h-7 rounded-md bg-surface border border-border text-text-muted hover:text-white hover:border-white/30 transition-all"
+              <a
+                href="https://linkedin.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-7 h-7 rounded-md bg-surface border border-border text-text-muted hover:text-accent hover:border-accent/30 transition-all"
                 aria-label="LinkedIn"
               >
                 <Linkedin className="w-3.5 h-3.5" strokeWidth={1.5} />
               </a>
-              <a 
-                href="https://github.com" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="flex items-center justify-center w-7 h-7 rounded-md bg-surface border border-border text-text-muted hover:text-white hover:border-white/30 transition-all"
+              <a
+                href="https://github.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-7 h-7 rounded-md bg-surface border border-border text-text-muted hover:text-accent hover:border-accent/30 transition-all"
                 aria-label="GitHub"
               >
                 <Github className="w-3.5 h-3.5" strokeWidth={1.5} />

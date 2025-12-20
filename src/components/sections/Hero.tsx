@@ -28,7 +28,7 @@ export function Hero() {
     <section className="relative min-h-screen flex items-center justify-center px-4 py-20 overflow-hidden">
       {/* Background grid */}
       <div className="absolute inset-0 bg-dots opacity-50" />
-      
+
       {/* Subtle gradient orbs */}
       <div className="gradient-orb w-[600px] h-[600px] bg-primary/30 -top-[200px] -left-[200px]" />
       <div className="gradient-orb w-[500px] h-[500px] bg-accent/20 bottom-[10%] -right-[150px]" />

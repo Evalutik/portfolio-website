@@ -31,7 +31,7 @@ export function Expertise() {
             </div>
             <div className="w-full bg-surface border border-border rounded h-1.5 overflow-hidden">
               <motion.div
-                className="h-full bg-gradient-to-r from-primary to-accent rounded"
+                className="h-full bg-gradient-to-r from-primary-dark to-accent rounded"
                 initial={{ width: 0 }}
                 whileInView={{ width: `${item.level}%` }}
                 transition={{ duration: 0.6, delay: index * 0.05, ease: 'easeOut' }}

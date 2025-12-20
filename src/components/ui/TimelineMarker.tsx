@@ -1,6 +1,6 @@
 'use client'
 
-import { PRIMARY, TEXT_MUTED, SURFACE } from '@/config/colors'
+import { ACCENT, TEXT_MUTED, SURFACE } from '@/config/colors'
 
 interface TimelineMarkerProps {
     progressPosition: number // 0-1, position along total scroll
@@ -40,8 +40,8 @@ export function TimelineMarker({ isActive, index }: TimelineMarkerProps) {
             <div
                 className="w-3 h-3 rounded-full transition-all duration-300"
                 style={{
-                    backgroundColor: isActive ? PRIMARY : SURFACE,
-                    border: `2px solid ${isActive ? PRIMARY : TEXT_MUTED}`,
+                    backgroundColor: isActive ? ACCENT : SURFACE,
+                    border: `2px solid ${isActive ? ACCENT : TEXT_MUTED}`,
                 }}
             />
         </div>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { PRIMARY, BORDER_LIGHT } from '@/config/colors'
+import { ACCENT, BORDER_LIGHT } from '@/config/colors'
 
 interface TimelinePathProps {
     progress: number // 0 to 1
@@ -75,7 +75,7 @@ export function TimelinePath({ progress }: TimelinePathProps) {
             <path
                 ref={pathRef}
                 d={pathD}
-                stroke={PRIMARY}
+                stroke={ACCENT}
                 strokeWidth="3"
                 strokeLinecap="round"
                 strokeLinejoin="round"

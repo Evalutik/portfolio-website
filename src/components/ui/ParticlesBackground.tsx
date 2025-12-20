@@ -4,11 +4,21 @@ import { useCallback, useEffect, useState } from 'react'
 import Particles, { initParticlesEngine } from '@tsparticles/react'
 import { loadSlim } from '@tsparticles/slim'
 import type { Engine, ISourceOptions } from '@tsparticles/engine'
+import {
+  PARTICLES_ENABLED,
+  PARTICLES_COLORS,
+  PARTICLES_OPACITY_MIN,
+  PARTICLES_OPACITY_MAX,
+  PARTICLES_LINK_COLOR,
+  PARTICLES_LINK_OPACITY,
+} from '@/config/colors'
 
 export function ParticlesBackground() {
   const [init, setInit] = useState(false)
 
   useEffect(() => {
+    if (!PARTICLES_ENABLED) return
+
     initParticlesEngine(async (engine: Engine) => {
       await loadSlim(engine)
     }).then(() => {
@@ -29,13 +39,13 @@ export function ParticlesBackground() {
         },
       },
       color: {
-        value: ['#6366f1', '#8b5cf6', '#a78bfa'],
+        value: PARTICLES_COLORS,
       },
       shape: {
         type: 'circle',
       },
       opacity: {
-        value: { min: 0.1, max: 0.3 },
+        value: { min: PARTICLES_OPACITY_MIN, max: PARTICLES_OPACITY_MAX },
         animation: {
           enable: true,
           speed: 0.5,
@@ -63,8 +73,8 @@ export function ParticlesBackground() {
       links: {
         enable: true,
         distance: 150,
-        color: '#6366f1',
-        opacity: 0.08,
+        color: PARTICLES_LINK_COLOR,
+        opacity: PARTICLES_LINK_OPACITY,
         width: 1,
       },
     },
@@ -87,7 +97,7 @@ export function ParticlesBackground() {
     detectRetina: true,
   }
 
-  if (!init) return null
+  if (!PARTICLES_ENABLED || !init) return null
 
   return (
     <div className="fixed inset-0 -z-10">
@@ -97,7 +107,7 @@ export function ParticlesBackground() {
         className="absolute inset-0"
       />
       {/* Gradient fade at bottom */}
-      <div 
+      <div
         className="absolute bottom-0 left-0 right-0 h-48 pointer-events-none"
         style={{
           background: 'linear-gradient(to bottom, transparent 0%, var(--background) 100%)',

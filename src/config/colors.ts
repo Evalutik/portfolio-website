@@ -14,10 +14,10 @@
 // =============================================================================
 
 /** Primary indigo - main brand color for CTAs and highlights */
-export const PRIMARY = '#4a3afbff'
+export const PRIMARY = '#6f3ef6ff'
 
 /** Darker primary - used for hover states on primary buttons */
-export const PRIMARY_DARK = '#3029a9ff'
+export const PRIMARY_DARK = '#432499ff'
 
 /** Lighter primary - used for subtle highlights and disabled states */
 export const PRIMARY_LIGHT = '#818cf8'
@@ -49,12 +49,33 @@ export const BLOB_3 = '#8b5cf6'
 /** Blob color 4 - light purple */
 export const BLOB_4 = '#a78bfa'
 
+/** Toggle to enable/disable cursor glow effect */
+export const CURSOR_GLOW_ENABLED = false
+
+/** Toggle to enable/disable cursor grid (net) effect */
+export const CURSOR_GRID_ENABLED = true
+
 /** Cursor glow - follows mouse */
-export const CURSOR_GLOW = ACCENT_DARK
+export const CURSOR_GLOW = '#3d4044ff'
 
 /** Skill modal return button wave */
 export const SKILL_WAVE = '#a78bfa'
 
+/** Toggle to enable/disable particles background */
+export const PARTICLES_ENABLED = true
+
+/** Particle colors - array of colors for the floating particles */
+export const PARTICLES_COLORS = ['#6366f1', '#8b5cf6', '#a78bfa']
+
+/** Particle opacity - min and max opacity values (0-1) */
+export const PARTICLES_OPACITY_MIN = 0.1
+export const PARTICLES_OPACITY_MAX = 0.4
+
+/** Particle link lines color */
+export const PARTICLES_LINK_COLOR = '#6366f1'
+
+/** Particle link lines opacity (0-1) */
+export const PARTICLES_LINK_OPACITY = 0.25
 
 // =============================================================================
 // BACKGROUND COLORS

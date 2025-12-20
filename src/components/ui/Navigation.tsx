@@ -22,6 +22,12 @@ export function Navigation() {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50)
 
+      // If at the very top, don't highlight any section
+      if (window.scrollY < 100) {
+        setActiveSection('')
+        return
+      }
+
       // Check if at the bottom of the page first
       const isAtBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 50
       if (isAtBottom) {
@@ -29,17 +35,25 @@ export function Navigation() {
         return
       }
 
+      // Find active section - prioritize sections whose top has entered upper 40% of viewport
       const sections = navItems.map(item => item.href.replace('#', ''))
-      for (const section of sections.reverse()) {
+      const threshold = window.innerHeight * 0.4 // Section becomes active when top enters upper 40%
+
+      // Go through sections in reverse to prioritize later sections
+      for (const section of [...sections].reverse()) {
         const element = document.getElementById(section)
         if (element) {
           const rect = element.getBoundingClientRect()
-          if (rect.top <= 150) {
+          // Section is active if its top is above the threshold
+          if (rect.top <= threshold) {
             setActiveSection(section)
-            break
+            return
           }
         }
       }
+
+      // If no section is above threshold, clear selection
+      setActiveSection('')
     }
 
     window.addEventListener('scroll', handleScroll)
@@ -87,7 +101,7 @@ export function Navigation() {
                 e.preventDefault()
                 window.scrollTo({ top: 0, behavior: 'smooth' })
               }}
-              className="text-sm font-medium text-text-primary hover:text-primary transition-colors"
+              className="text-sm font-medium text-text-primary hover:text-accent transition-colors"
             >
               <div className="min-w-[40px] md:min-w-[140px]">
                 <AnimatePresence mode="wait">
@@ -127,8 +141,8 @@ export function Navigation() {
                   key={item.href}
                   onClick={() => handleClick(item.href)}
                   className={`relative px-3 py-1.5 text-xs rounded-full transition-colors duration-200 ${activeSection === item.href.replace('#', '')
-                      ? 'bg-white/10 text-zinc-200 font-medium'
-                      : 'text-text-secondary hover:text-zinc-200'
+                    ? 'bg-white/10 text-zinc-200 font-medium'
+                    : 'text-text-secondary hover:text-zinc-200'
                     }`}
                 >
                   {item.label}
@@ -198,7 +212,7 @@ export function Navigation() {
                     key={item.href}
                     onClick={() => handleClick(item.href)}
                     className={`w-full text-left px-4 py-3 text-sm rounded-xl transition-all duration-200 ${activeSection === item.href.replace('#', '')
-                      ? 'bg-primary/10 text-primary'
+                      ? 'bg-accent/10 text-accent'
                       : 'text-text-secondary hover:text-text-primary hover:bg-surface-light'
                       }`}
                     initial={{ opacity: 0, x: -10 }}
@@ -231,7 +245,7 @@ export function Navigation() {
             </span>
             <div
               className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${activeSection === item.href.replace('#', '')
-                ? 'bg-primary scale-125'
+                ? 'bg-accent scale-125'
                 : 'bg-border group-hover:bg-text-muted'
                 }`}
             />

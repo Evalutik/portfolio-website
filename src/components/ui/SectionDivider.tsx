@@ -4,7 +4,7 @@ import { motion, useScroll, useTransform } from 'framer-motion'
 import { useRef } from 'react'
 
 interface SectionDividerProps {
-  variant?: 'code' | 'data' | 'dots' | 'wave'
+  variant?: 'code' | 'data' | 'dots' | 'wave' | 'spacer'
 }
 
 // Real code snippets for the code divider
@@ -39,10 +39,15 @@ export function SectionDivider({ variant = 'code' }: SectionDividerProps) {
   const x = useTransform(scrollYProgress, [0, 1], [-100, 100])
   const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [0.3, 1, 0.3])
 
+  // spacer variant - just empty space, same height as dots
+  if (variant === 'spacer') {
+    return <div className="py-8" />
+  }
+
   if (variant === 'code') {
     return (
       <div ref={ref} className="relative py-8 overflow-hidden select-none pointer-events-none">
-        <motion.div 
+        <motion.div
           className="flex justify-center gap-4 text-text-muted/20 font-mono text-xs"
           style={{ x, opacity }}
         >
@@ -61,7 +66,7 @@ export function SectionDivider({ variant = 'code' }: SectionDividerProps) {
     const heights = [24, 32, 18, 28, 22, 35, 20, 30, 25, 33, 19, 27, 23, 31, 21, 29, 26, 34, 20, 28, 24, 32, 18, 30, 22, 35, 25, 19, 27, 31]
     return (
       <div ref={ref} className="relative py-8 overflow-hidden">
-        <motion.div 
+        <motion.div
           className="flex justify-center gap-4"
           style={{ x: useTransform(scrollYProgress, [0, 1], [50, -50]), opacity }}
         >
@@ -81,7 +86,7 @@ export function SectionDivider({ variant = 'code' }: SectionDividerProps) {
     return (
       <div ref={ref} className="relative py-12 overflow-hidden">
         <svg
-          className="w-full h-12 text-primary/10"
+          className="w-full h-12 text-accent/10"
           viewBox="0 0 1200 60"
           preserveAspectRatio="none"
         >
@@ -100,7 +105,7 @@ export function SectionDivider({ variant = 'code' }: SectionDividerProps) {
   // dots variant
   return (
     <div ref={ref} className="relative py-8">
-      <motion.div 
+      <motion.div
         className="flex justify-center gap-2"
         style={{ opacity }}
       >
