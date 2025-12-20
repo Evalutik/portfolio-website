@@ -107,7 +107,7 @@ export function CursorGlow() {
               linear-gradient(${CURSOR_GLOW} 1px, transparent 1px),
               linear-gradient(90deg, ${CURSOR_GLOW} 1px, transparent 1px)
             `,
-            backgroundSize: '64px 64px',
+            backgroundSize: '83px 83px',
             opacity: isVisible ? (isMoving ? 0.8 : 0.4) : 0,
             transition: isMoving ? 'opacity 0.2s ease' : 'opacity 5s ease',
             zIndex: -9,

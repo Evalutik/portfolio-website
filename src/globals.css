@@ -88,7 +88,7 @@ body {
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.2) 1px, transparent 1px);
-  background-size: 64px 64px;
+  background-size: 83px 83px;
 }
 
 /* Dots pattern - subtle dot grid background */
@@ -123,4 +123,67 @@ body {
 /* Monospace code styling */
 .code-text {
   @apply font-mono text-sm text-text-secondary;
+}
+
+/* Primary button with animated diagonal effect on hover */
+.btn-primary-animated {
+  position: relative;
+  overflow: hidden;
+  background-color: #6f3ef6;
+  /* PRIMARY from colors.ts */
+}
+
+.btn-primary-animated::before {
+  content: '';
+  position: absolute;
+  top: -200%;
+  left: -300%;
+  width: 300%;
+  height: 300%;
+  background-color: #432499;
+  /* PRIMARY_DARK from colors.ts */
+  transform: skewX(-20deg);
+  transition: left 0.25s ease-in;
+  z-index: 0;
+}
+
+.btn-primary-animated:hover::before {
+  left: -50%;
+}
+
+.btn-primary-animated>* {
+  position: relative;
+  z-index: 1;
+}
+
+/* Secondary button with one-time shine effect on hover */
+.btn-secondary-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-secondary-shine::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.15),
+      transparent);
+  transform: skewX(-20deg);
+  transition: none;
+  z-index: 0;
+}
+
+.btn-secondary-shine:hover::before {
+  left: 150%;
+  transition: left 0.5s ease-out;
+}
+
+.btn-secondary-shine>* {
+  position: relative;
+  z-index: 1;
 }
