@@ -3,8 +3,25 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useCallback, useState, useRef, useMemo } from 'react'
 import dynamic from 'next/dynamic'
-import { allSkills, getSkillCategory, getSkillByTitle, SkillConfig } from '@/config/skills'
-import { BACKGROUND, SURFACE, TEXT_PRIMARY, TEXT_MUTED, PRIMARY, ACCENT, BORDER } from '@/config/colors'
+import {
+    allSkills,
+    getSkillCategory,
+    getSkillByTitle,
+    SkillConfig,
+    graphHubs,
+    categoryToHub
+} from '@/config/skills'
+import {
+    BACKGROUND,
+    SURFACE,
+    TEXT_PRIMARY,
+    TEXT_SECONDARY,
+    TEXT_MUTED,
+    PRIMARY,
+    ACCENT,
+    BORDER,
+    BORDER_LIGHT
+} from '@/config/colors'
 
 // Dynamically import ForceGraph2D to avoid SSR issues
 const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), { ssr: false })
@@ -15,7 +32,7 @@ interface SkillGraphModalProps {
     onSkillClick: (skill: SkillConfig) => void
 }
 
-// Category colors for nodes
+// Category colors for nodes (matching the existing config)
 const CATEGORY_COLORS: Record<string, string> = {
     'Data Engineering': '#6366f1', // Indigo
     'Programming': '#8b5cf6',      // Violet/Purple
@@ -28,9 +45,11 @@ interface GraphNode {
     id: string
     name: string
     category: string
-    val: number // Node size based on connections
+    val: number
     color: string
-    // These are added by force-graph at runtime
+    isHub?: boolean
+    hubType?: 'main' | 'category'
+    // Force-graph runtime properties
     x?: number
     y?: number
     vx?: number
@@ -40,6 +59,7 @@ interface GraphNode {
 interface GraphLink {
     source: string | GraphNode
     target: string | GraphNode
+    linkType?: 'hub-to-hub' | 'hub-to-skill' | 'skill-to-skill'
 }
 
 interface GraphData {
@@ -47,16 +67,21 @@ interface GraphData {
     links: GraphLink[]
 }
 
+// Consistent panel styling matching website design system
+const panelClass = "bg-surface/80 backdrop-blur-md border border-border rounded-xl"
+
 /**
  * SkillGraphModal
  * 
- * Full-screen modal displaying an Obsidian-style force-directed graph
- * of all skills and their relationships.
+ * Full-screen modal displaying a hierarchical force-directed graph
+ * of skills with hub nodes for categories.
  */
 export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphModalProps) {
     const [searchQuery, setSearchQuery] = useState('')
     const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
+    const [nodeVisibility, setNodeVisibility] = useState<Record<string, number>>({})
     const containerRef = useRef<HTMLDivElement>(null)
+    const fgRef = useRef<any>(null)
 
     // Handle escape key
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -65,35 +90,81 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
         }
     }, [onClose])
 
-    // Build graph data from skills
+    // Build graph data from skills and hubs - MEMOIZED ONCE
     const graphData = useMemo<GraphData>(() => {
         const nodes: GraphNode[] = []
         const links: GraphLink[] = []
         const addedLinks = new Set<string>()
 
+        // 1. Add main hub nodes
+        graphHubs.filter(h => h.type === 'main').forEach(hub => {
+            nodes.push({
+                id: hub.id,
+                name: hub.name,
+                category: 'hub',
+                val: 12,
+                color: TEXT_MUTED,
+                isHub: true,
+                hubType: 'main',
+            })
+        })
+
+        // 2. Add category hub nodes and link to main hubs
+        graphHubs.filter(h => h.type === 'category').forEach(hub => {
+            nodes.push({
+                id: hub.id,
+                name: hub.name,
+                category: 'hub',
+                val: 8,
+                color: CATEGORY_COLORS[hub.name] || TEXT_MUTED,
+                isHub: true,
+                hubType: 'category',
+            })
+
+            // Link category hub to main hub
+            if (hub.parentHub) {
+                links.push({
+                    source: hub.parentHub,
+                    target: hub.id,
+                    linkType: 'hub-to-hub'
+                })
+            }
+        })
+
+        // 3. Add skill nodes and link to their category hub
         allSkills.forEach(skill => {
             const category = getSkillCategory(skill.title) || 'Other'
+            const hubId = categoryToHub[category]
             const connectionCount = skill.relatedTo?.length || 0
 
             nodes.push({
                 id: skill.title,
                 name: skill.title,
                 category,
-                val: Math.max(2, connectionCount * 0.8), // Size based on connections
+                val: Math.max(2, connectionCount * 0.8),
                 color: CATEGORY_COLORS[category] || PRIMARY,
+                isHub: false,
             })
 
-            // Add links for relationships
+            // Link skill to its category hub
+            if (hubId) {
+                links.push({
+                    source: hubId,
+                    target: skill.title,
+                    linkType: 'hub-to-skill'
+                })
+            }
+
+            // 4. Add skill-to-skill relationships (from relatedTo config)
             skill.relatedTo?.forEach(relatedTitle => {
-                // Only add link if the related skill exists
                 if (allSkills.some(s => s.title === relatedTitle)) {
-                    // Create unique key for link (sorted to avoid duplicates)
                     const linkKey = [skill.title, relatedTitle].sort().join('---')
                     if (!addedLinks.has(linkKey)) {
                         addedLinks.add(linkKey)
                         links.push({
                             source: skill.title,
                             target: relatedTitle,
+                            linkType: 'skill-to-skill'
                         })
                     }
                 }
@@ -103,41 +174,70 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
         return { nodes, links }
     }, [])
 
-    // Filter nodes based on search
-    const filteredData = useMemo<GraphData>(() => {
-        if (!searchQuery.trim()) {
-            return graphData
+    // Initialize node visibility when graph data is ready
+    useEffect(() => {
+        const initialVisibility: Record<string, number> = {}
+        graphData.nodes.forEach(node => {
+            initialVisibility[node.id] = 1
+        })
+        setNodeVisibility(initialVisibility)
+    }, [graphData])
+
+    // Update visibility based on search (smooth filtering without re-render)
+    useEffect(() => {
+        const query = searchQuery.toLowerCase().trim()
+        const newVisibility: Record<string, number> = {}
+
+        if (!query) {
+            // No search - all nodes visible
+            graphData.nodes.forEach(node => {
+                newVisibility[node.id] = 1
+            })
+        } else {
+            // Find matching nodes
+            const matchingNodeIds = new Set(
+                graphData.nodes
+                    .filter(node => node.name.toLowerCase().includes(query))
+                    .map(node => node.id)
+            )
+
+            // Find nodes connected to matching nodes
+            const connectedNodeIds = new Set<string>()
+            graphData.links.forEach(link => {
+                const sourceId = typeof link.source === 'string' ? link.source : link.source.id
+                const targetId = typeof link.target === 'string' ? link.target : link.target.id
+
+                if (matchingNodeIds.has(sourceId)) {
+                    connectedNodeIds.add(targetId)
+                }
+                if (matchingNodeIds.has(targetId)) {
+                    connectedNodeIds.add(sourceId)
+                }
+            })
+
+            // Set visibility levels
+            graphData.nodes.forEach(node => {
+                if (matchingNodeIds.has(node.id)) {
+                    newVisibility[node.id] = 1 // Full visibility for matches
+                } else if (connectedNodeIds.has(node.id)) {
+                    newVisibility[node.id] = 0.5 // Dimmed for connected nodes
+                } else {
+                    newVisibility[node.id] = 0.1 // Very dim for unrelated nodes
+                }
+            })
         }
 
-        const query = searchQuery.toLowerCase()
-        const matchingNodeIds = new Set(
-            graphData.nodes
-                .filter(node => node.name.toLowerCase().includes(query))
-                .map(node => node.id)
-        )
-
-        // Keep matching nodes fully visible, dim others
-        const nodes = graphData.nodes.map(node => ({
-            ...node,
-            color: matchingNodeIds.has(node.id)
-                ? CATEGORY_COLORS[node.category] || PRIMARY
-                : `${CATEGORY_COLORS[node.category] || PRIMARY}30` // 30% opacity for non-matches
-        }))
-
-        // Only show links between matching nodes
-        const links = graphData.links.filter(
-            link => matchingNodeIds.has(link.source as string) && matchingNodeIds.has(link.target as string)
-        )
-
-        return { nodes, links }
-    }, [graphData, searchQuery])
+        setNodeVisibility(newVisibility)
+    }, [searchQuery, graphData])
 
     // Handle node click
     const handleNodeClick = useCallback((node: any) => {
+        // Don't process clicks on hub nodes
+        if (node.isHub) return
+
         const skill = getSkillByTitle(node.id)
         if (skill) {
             onClose()
-            // Small delay to let close animation start
             setTimeout(() => onSkillClick(skill), 150)
         }
     }, [onClose, onSkillClick])
@@ -154,28 +254,62 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
         }
 
         if (isOpen) {
+            // Lock body scroll
+            const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+            document.body.style.overflow = 'hidden'
+            document.body.style.paddingRight = `${scrollbarWidth}px`
+            document.body.style.overscrollBehavior = 'none'
+
             updateDimensions()
             window.addEventListener('resize', updateDimensions)
-            document.body.style.overflow = 'hidden'
             window.addEventListener('keydown', handleKeyDown)
-        }
 
-        return () => {
-            window.removeEventListener('resize', updateDimensions)
-            document.body.style.overflow = ''
-            window.removeEventListener('keydown', handleKeyDown)
+            // Adjust forces and zoom when graph opens
+            setTimeout(() => {
+                if (fgRef.current) {
+                    // Configure forces for hub layout
+                    fgRef.current.d3Force('link').distance((link: any) => {
+                        if (link.linkType === 'hub-to-hub') return 80
+                        if (link.linkType === 'hub-to-skill') return 60
+                        return 45 // skill-to-skill
+                    })
+                    fgRef.current.d3Force('charge').strength(-120)
+                    fgRef.current.d3ReheatSimulation()
+
+                    // Zoom to fit with padding
+                    fgRef.current.zoomToFit(400, 40)
+                }
+            }, 200)
+
+            return () => {
+                document.body.style.overflow = ''
+                document.body.style.paddingRight = ''
+                document.body.style.overscrollBehavior = ''
+                window.removeEventListener('resize', updateDimensions)
+                window.removeEventListener('keydown', handleKeyDown)
+            }
         }
     }, [isOpen, handleKeyDown])
+
+    // Get link visibility based on connected nodes
+    const getLinkVisibility = useCallback((link: any) => {
+        const sourceId = typeof link.source === 'string' ? link.source : link.source.id
+        const targetId = typeof link.target === 'string' ? link.target : link.target.id
+        const sourceVis = nodeVisibility[sourceId] ?? 1
+        const targetVis = nodeVisibility[targetId] ?? 1
+        return Math.min(sourceVis, targetVis)
+    }, [nodeVisibility])
 
     return (
         <AnimatePresence>
             {isOpen && (
                 <motion.div
-                    className="fixed inset-0 z-50"
+                    className="fixed inset-0 z-50 flex items-center justify-center touch-none"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.21 }}
+                    transition={{ duration: 0.2 }}
+                    onWheel={(e) => e.stopPropagation()}
                 >
                     {/* Dark backdrop */}
                     <motion.div
@@ -184,70 +318,112 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        transition={{ duration: 0.175 }}
+                        transition={{ duration: 0.15 }}
                     />
 
                     {/* Content */}
                     <motion.div
-                        className="absolute inset-0 flex flex-col"
-                        initial={{ opacity: 0, scale: 0.95 }}
+                        className="absolute inset-0"
+                        initial={{ opacity: 0, scale: 0.96 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
+                        exit={{ opacity: 0, scale: 0.96 }}
                         transition={{ duration: 0.2 }}
                     >
-                        {/* Header with search */}
-                        <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: BORDER }}>
-                            <div className="flex items-center gap-4">
-                                <h2 className="text-lg font-semibold" style={{ color: TEXT_PRIMARY }}>
-                                    Skill Graph
+                        {/* Search Panel (Top Left) */}
+                        <div className={`absolute top-5 left-5 z-10 ${panelClass} p-4`}>
+                            <div className="flex items-center gap-3">
+                                <h2 className="text-sm font-medium text-text-primary whitespace-nowrap">
+                                    Skill Galaxy
                                 </h2>
+                                <div className="h-4 w-px bg-border hidden sm:block" />
                                 <input
                                     type="text"
                                     placeholder="Search skills..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="px-3 py-1.5 text-sm rounded-md bg-surface border border-border focus:border-primary focus:outline-none transition-colors"
-                                    style={{
-                                        backgroundColor: SURFACE,
-                                        borderColor: BORDER,
-                                        color: TEXT_PRIMARY,
-                                    }}
+                                    autoFocus
+                                    className="bg-transparent text-sm text-text-primary focus:outline-none placeholder:text-text-muted min-w-[120px]"
                                 />
-                            </div>
-
-                            {/* Legend */}
-                            <div className="hidden md:flex items-center gap-4 text-xs" style={{ color: TEXT_MUTED }}>
-                                {Object.entries(CATEGORY_COLORS).map(([category, color]) => (
-                                    <div key={category} className="flex items-center gap-1.5">
-                                        <div
-                                            className="w-2.5 h-2.5 rounded-full"
-                                            style={{ backgroundColor: color }}
-                                        />
-                                        <span>{category}</span>
-                                    </div>
-                                ))}
                             </div>
                         </div>
 
+                        {/* Legend Panel (Top Right) */}
+                        <div className={`absolute top-5 right-5 z-10 ${panelClass} p-4 hidden md:block`}>
+                            <span className="text-[10px] font-mono text-text-muted uppercase tracking-widest mb-3 block">
+                                {'// '}categories
+                            </span>
+                            {Object.entries(CATEGORY_COLORS).map(([category, color]) => (
+                                <div key={category} className="flex items-center gap-2 mb-2 last:mb-0">
+                                    <div
+                                        className="w-2 h-2 rounded-full"
+                                        style={{ backgroundColor: color }}
+                                    />
+                                    <span className="text-xs text-text-secondary">{category}</span>
+                                </div>
+                            ))}
+                        </div>
+
                         {/* Graph container */}
-                        <div ref={containerRef} className="flex-1 relative">
+                        <div ref={containerRef} className="absolute inset-0 z-0">
                             {dimensions.width > 0 && (
                                 <ForceGraph2D
-                                    graphData={filteredData}
+                                    ref={fgRef}
+                                    graphData={graphData}
                                     width={dimensions.width}
                                     height={dimensions.height}
                                     backgroundColor={BACKGROUND}
-                                    nodeLabel="name"
-                                    nodeColor={(node: any) => node.color}
-                                    nodeRelSize={6}
+
+                                    minZoom={0.3}
+                                    maxZoom={6}
+
+                                    nodeLabel=""
+                                    nodeRelSize={2}
                                     nodeVal={(node: any) => node.val}
-                                    linkColor={() => `${ACCENT}40`}
-                                    linkWidth={1}
-                                    onNodeClick={(node: any) => handleNodeClick(node)}
+
+                                    linkWidth={(link: any) => {
+                                        const visibility = getLinkVisibility(link)
+                                        if (visibility < 0.2) return 0
+                                        if (link.linkType === 'hub-to-hub') return 2
+                                        if (link.linkType === 'hub-to-skill') return 1.5
+                                        return 1
+                                    }}
+
+                                    linkColor={(link: any) => {
+                                        const visibility = getLinkVisibility(link)
+                                        if (visibility < 0.2) return 'transparent'
+
+                                        // Hub connections: more visible
+                                        if (link.linkType === 'hub-to-hub' || link.linkType === 'hub-to-skill') {
+                                            const alpha = Math.round(visibility * 0.3 * 255).toString(16).padStart(2, '0')
+                                            return `${TEXT_MUTED}${alpha}`
+                                        }
+                                        // Skill-to-skill: subtle
+                                        const alpha = Math.round(visibility * 0.15 * 255).toString(16).padStart(2, '0')
+                                        return `${ACCENT}${alpha}`
+                                    }}
+
+                                    onNodeClick={handleNodeClick}
+
                                     nodeCanvasObject={(node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+                                        const visibility = nodeVisibility[node.id] ?? 1
+                                        if (visibility < 0.05) return
+
                                         const label = node.name
-                                        const fontSize = Math.max(10 / globalScale, 2)
-                                        const nodeSize = Math.sqrt(node.val) * 6
+                                        const isHub = node.isHub
+                                        const isMainHub = node.hubType === 'main'
+                                        const isCategoryHub = node.hubType === 'category'
+
+                                        // Node size based on type
+                                        let nodeSize: number
+                                        if (isMainHub) {
+                                            nodeSize = 10
+                                        } else if (isCategoryHub) {
+                                            nodeSize = 7
+                                        } else {
+                                            nodeSize = Math.sqrt(node.val) * 2
+                                        }
+
+                                        ctx.globalAlpha = visibility
 
                                         // Draw node circle
                                         ctx.beginPath()
@@ -255,22 +431,46 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                                         ctx.fillStyle = node.color
                                         ctx.fill()
 
-                                        // Draw label if zoomed in enough
-                                        if (globalScale > 0.5) {
-                                            ctx.font = `${fontSize}px Inter, sans-serif`
+                                        // Add subtle border for hubs
+                                        if (isHub) {
+                                            ctx.strokeStyle = BORDER_LIGHT
+                                            ctx.lineWidth = 1
+                                            ctx.stroke()
+                                        }
+
+                                        // Draw label
+                                        const fontSize = isHub
+                                            ? Math.max(12 / globalScale, 3)
+                                            : Math.max(10 / globalScale, 2)
+
+                                        if (globalScale > 0.4 || isHub) {
+                                            ctx.font = `${isHub ? '500 ' : ''}${fontSize}px Inter, sans-serif`
                                             ctx.textAlign = 'center'
                                             ctx.textBaseline = 'middle'
-                                            ctx.fillStyle = TEXT_PRIMARY
-                                            ctx.fillText(label, node.x!, node.y! + nodeSize + fontSize)
+                                            ctx.fillStyle = isHub ? TEXT_PRIMARY : TEXT_SECONDARY
+                                            ctx.fillText(label, node.x!, node.y! + nodeSize + fontSize * 0.8)
                                         }
+
+                                        ctx.globalAlpha = 1
                                     }}
+
                                     nodePointerAreaPaint={(node: any, color: string, ctx: CanvasRenderingContext2D) => {
-                                        const nodeSize = Math.sqrt(node.val) * 6
+                                        const isMainHub = node.hubType === 'main'
+                                        const isCategoryHub = node.hubType === 'category'
+                                        let nodeSize: number
+                                        if (isMainHub) {
+                                            nodeSize = 10
+                                        } else if (isCategoryHub) {
+                                            nodeSize = 7
+                                        } else {
+                                            nodeSize = Math.sqrt(node.val) * 2
+                                        }
                                         ctx.beginPath()
                                         ctx.arc(node.x!, node.y!, nodeSize + 5, 0, 2 * Math.PI)
                                         ctx.fillStyle = color
                                         ctx.fill()
                                     }}
+
                                     cooldownTicks={100}
                                     d3AlphaDecay={0.02}
                                     d3VelocityDecay={0.3}
@@ -278,14 +478,13 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                             )}
                         </div>
 
-                        {/* Return button */}
-                        <div className="px-6 py-4 border-t" style={{ borderColor: BORDER }}>
+                        {/* Return Button (Bottom Center) */}
+                        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-10">
                             <button
                                 onClick={onClose}
-                                className="font-mono text-xs hover:text-primary transition-colors"
-                                style={{ color: TEXT_MUTED }}
+                                className={`${panelClass} btn-secondary-shine px-5 py-2.5 font-mono text-xs text-text-muted hover:text-text-primary hover:border-border-light transition-all duration-200`}
                             >
-                                return();
+                                <span>return();</span>
                             </button>
                         </div>
                     </motion.div>

@@ -24,6 +24,43 @@ export interface SkillConfig {
 }
 
 // =============================================================================
+// GRAPH HUB CONFIGURATION
+// Defines the hierarchical structure for the Skill Galaxy graph
+// =============================================================================
+
+export interface GraphHub {
+  id: string
+  name: string
+  type: 'main' | 'category'
+  parentHub?: string  // For category hubs, references the parent hub id
+}
+
+/**
+ * Hub nodes for the Skill Galaxy graph
+ * Structure: Main Hub -> Category Hubs -> Individual Skills
+ */
+export const graphHubs: GraphHub[] = [
+  // Main hub
+  { id: 'hub-skills', name: 'Skills', type: 'main' },
+
+  // Category sub-hubs (all linked to the main hub)
+  { id: 'hub-data-engineering', name: 'Data Engineering', type: 'category', parentHub: 'hub-skills' },
+  { id: 'hub-programming', name: 'Programming', type: 'category', parentHub: 'hub-skills' },
+  { id: 'hub-cloud', name: 'Cloud', type: 'category', parentHub: 'hub-skills' },
+  { id: 'hub-ml-analytics', name: 'ML & Analytics', type: 'category', parentHub: 'hub-skills' },
+]
+
+/**
+ * Maps category names to their hub IDs
+ */
+export const categoryToHub: Record<string, string> = {
+  'Data Engineering': 'hub-data-engineering',
+  'Programming': 'hub-programming',
+  'Cloud': 'hub-cloud',
+  'ML & Analytics': 'hub-ml-analytics',
+}
+
+// =============================================================================
 // ROW 1: Data Engineering & ETL
 // =============================================================================
 
