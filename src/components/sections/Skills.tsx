@@ -5,10 +5,12 @@ import { SectionHeading } from '@/components/ui/SectionHeading'
 import { SkillsMarquee3D } from '@/components/ui/SkillsMarquee3D'
 import { SkillTag } from '@/components/ui/SkillTag'
 import { SkillDetailModal } from '@/components/ui/SkillDetailModal'
+import { SkillGraphModal } from '@/components/ui/SkillGraphModal'
 import { skillRows, getSkillByTitle, SkillConfig } from '@/config/skills'
 
 export function Skills() {
   const [selectedSkill, setSelectedSkill] = useState<SkillConfig | null>(null)
+  const [showGraph, setShowGraph] = useState(false)
 
   const handleSkillClick = (title: string) => {
     const skillData = getSkillByTitle(title)
@@ -17,13 +19,17 @@ export function Skills() {
     }
   }
 
+  const handleGraphSkillClick = (skill: SkillConfig) => {
+    setSelectedSkill(skill)
+  }
+
   const rows = skillRows.map(row => ({
     skills: row.skills.map((s, i) => (
-      <SkillTag 
-        key={i} 
+      <SkillTag
+        key={i}
         title={s.title}
         icon={s.icon}
-        onClick={() => handleSkillClick(s.title)} 
+        onClick={() => handleSkillClick(s.title)}
       />
     )),
     direction: row.direction,
@@ -33,15 +39,31 @@ export function Skills() {
     <section id="skills" className="py-16 overflow-visible">
       <div className="max-w-3xl mx-auto px-4 mb-8">
         <SectionHeading title="Skills & Technologies" />
+
+        {/* Explore button styled like About's subtitle */}
+        <button
+          onClick={() => setShowGraph(true)}
+          className="group -mt-10 mb-8 text-text-muted text-sm hover:text-accent transition-colors flex items-center gap-2"
+        >
+          <span>Explore skill galaxy</span>
+        </button>
       </div>
-      
+
       <SkillsMarquee3D rows={rows} />
-      
+
       {/* Skill Detail Modal */}
-      <SkillDetailModal 
-        skill={selectedSkill} 
-        onClose={() => setSelectedSkill(null)} 
+      <SkillDetailModal
+        skill={selectedSkill}
+        onClose={() => setSelectedSkill(null)}
+      />
+
+      {/* Skill Graph Modal */}
+      <SkillGraphModal
+        isOpen={showGraph}
+        onClose={() => setShowGraph(false)}
+        onSkillClick={handleGraphSkillClick}
       />
     </section>
   )
 }
+
