@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { useEffect, useCallback, useState, useRef, useMemo } from 'react'
+import { useEffect, useCallback, useState, useRef, useMemo, type LucideIcon } from 'react'
 import dynamic from 'next/dynamic'
 import { X, Plus, Minus, Home, Search } from 'lucide-react'
 import {
@@ -96,6 +96,7 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
     const containerRef = useRef<HTMLDivElement>(null)
     const fgRef = useRef<any>(null)
     const graphConfiguredRef = useRef(false)
+    const searchInputRef = useRef<HTMLInputElement>(null)
 
     // Handle escape key
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -198,17 +199,41 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
         return { nodes, links }
     }, [])
 
-    // Apply visibility filter based on search or selected hub
+    // Count skills connected to a hub
+    const getHubSkillCount = useCallback((hubId: string) => {
+        let count = 0
+        graphData.links.forEach(l => {
+            const sourceId = typeof l.source === 'string' ? l.source : l.source.id
+            const targetId = typeof l.target === 'string' ? l.target : l.target.id
+            if (l.linkType === 'hub-to-skill') {
+                if (sourceId === hubId || targetId === hubId) count++
+            }
+        })
+        // For main hub, count all skills
+        if (hubId === 'hub-skills') {
+            return allSkills.length
+        }
+        return count
+    }, [graphData])
+
+    // Check if search has results
+    const hasSearchResults = useMemo(() => {
+        if (!searchQuery.trim()) return true
+        const query = searchQuery.toLowerCase().trim()
+        return graphData.nodes.some(node =>
+            node.name.toLowerCase().includes(query) && !node.isHub
+        )
+    }, [searchQuery, graphData])
+
+    // Apply visibility filter
     const applyFilter = useCallback((query: string, hubId?: string) => {
         const newVisibility: Record<string, number> = {}
 
         if (!query && !hubId) {
-            // No filter - all nodes visible
             graphData.nodes.forEach(node => {
                 newVisibility[node.id] = 1
             })
         } else if (hubId) {
-            // Hub filter - highlight hub and its connected skills
             graphData.nodes.forEach(node => {
                 if (node.id === hubId || node.id === 'hub-skills') {
                     newVisibility[node.id] = 1
@@ -216,7 +241,6 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                     newVisibility[node.id] = 0.15
                 }
             })
-            // Find skills connected to this hub
             graphData.links.forEach(link => {
                 const sourceId = typeof link.source === 'string' ? link.source : link.source.id
                 const targetId = typeof link.target === 'string' ? link.target : link.target.id
@@ -224,7 +248,6 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                 if (targetId === hubId) newVisibility[sourceId] = 1
             })
         } else {
-            // Search filter
             const matchingNodeIds = new Set(
                 graphData.nodes
                     .filter(node => node.name.toLowerCase().includes(query.toLowerCase()))
@@ -271,7 +294,7 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
         }
     }, [searchQuery, applyFilter])
 
-    // Clear all filters and selection
+    // Clear all
     const clearAll = useCallback(() => {
         setSearchQuery('')
         setSelectedNode(null)
@@ -282,14 +305,12 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
 
     // Handle node click
     const handleNodeClick = useCallback((node: any) => {
-        // If node has low visibility, clear filter first
         const currentVisibility = nodeVisibility[node.id] ?? 1
         if (currentVisibility < 0.5) {
             clearAll()
         }
 
         if (node.isHub) {
-            // Select hub and show hub info
             setSelectedNode(node)
             setSelectedSkill(null)
             setSelectedHub(node.hubData || null)
@@ -397,6 +418,13 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
             window.addEventListener('resize', updateDimensions)
             window.addEventListener('keydown', handleKeyDown)
 
+            // Focus search input
+            setTimeout(() => {
+                if (searchInputRef.current) {
+                    searchInputRef.current.focus()
+                }
+            }, 100)
+
             const configureGraph = () => {
                 if (fgRef.current && !graphConfiguredRef.current) {
                     configureForces()
@@ -437,11 +465,11 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
         return Math.min(sourceVis, targetVis)
     }, [nodeVisibility])
 
-    // Determine what to show in card
+    // Card data
     const showCard = selectedSkill || selectedHub
     const cardTitle = selectedSkill?.title || selectedHub?.name || ''
     const cardDescription = selectedSkill?.description || selectedHub?.description || ''
-    const cardIcon = selectedSkill?.icon
+    const CardIcon: LucideIcon | undefined = selectedSkill?.icon
     const cardExperience = selectedSkill?.experience
     const cardUseCases = selectedSkill?.useCases
     const cardRelated = selectedSkill?.relatedTo
@@ -480,11 +508,11 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                             <div className={`${panelClass} px-2 py-1.5 flex items-center gap-1.5`}>
                                 <Search className="w-3.5 h-3.5 text-text-muted flex-shrink-0" />
                                 <input
+                                    ref={searchInputRef}
                                     type="text"
                                     placeholder="Search..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    autoFocus
                                     className="bg-transparent text-xs text-text-primary focus:outline-none placeholder:text-text-muted w-24"
                                 />
                                 {searchQuery && (
@@ -498,17 +526,18 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                             </div>
                         </div>
 
-                        {/* Close Button (Top Right) */}
+                        {/* Close Button (Top Right) - Match search style */}
                         <div className="absolute top-5 right-5 z-10">
                             <button
                                 onClick={onClose}
-                                className="btn-secondary-shine bg-surface border border-border text-text-primary hover:bg-surface-light hover:border-border-light font-medium rounded-lg text-sm px-4 py-2 transition-all duration-200"
+                                className={`${panelClass} px-3 py-1.5 flex items-center gap-1.5 hover:bg-surface-light hover:border-border-light transition-all duration-200`}
                             >
-                                <span>Close</span>
+                                <X className="w-3.5 h-3.5 text-text-muted" />
+                                <span className="text-xs text-text-muted">Close</span>
                             </button>
                         </div>
 
-                        {/* Legend Panel (Right Center) */}
+                        {/* Legend Panel (Right Center) - Wider, no hover box */}
                         <div className={`absolute right-5 top-1/2 -translate-y-1/2 z-10 ${panelClass} p-3 hidden md:block`}>
                             <span className="text-[10px] font-mono text-text-muted uppercase tracking-widest mb-2 block">
                                 {'// '}categories
@@ -517,18 +546,20 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                                 <button
                                     key={category}
                                     onClick={() => handleCategoryClick(category)}
-                                    className="flex items-center gap-2 mb-1.5 last:mb-0 w-full text-left hover:bg-surface-light rounded px-1 py-0.5 -mx-1 transition-colors"
+                                    className="flex items-center gap-2 mb-1.5 last:mb-0 w-full text-left group"
                                 >
                                     <div
                                         className="w-2 h-2 rounded-full flex-shrink-0"
                                         style={{ backgroundColor: color }}
                                     />
-                                    <span className="text-xs text-text-secondary hover:text-text-primary transition-colors">{category}</span>
+                                    <span className="text-xs text-text-secondary group-hover:text-text-primary transition-colors whitespace-nowrap">
+                                        {category}
+                                    </span>
                                 </button>
                             ))}
                         </div>
 
-                        {/* Zoom Controls (Bottom Right) - Smaller, reordered: +, home, - */}
+                        {/* Zoom Controls (Bottom Right) */}
                         <div className="absolute bottom-5 right-5 z-10 flex flex-col gap-1">
                             <button
                                 onClick={handleZoomIn}
@@ -553,7 +584,14 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                             </button>
                         </div>
 
-                        {/* Info Card (Left Center) - Max 55% height */}
+                        {/* No Results Message */}
+                        {searchQuery.trim() && !hasSearchResults && (
+                            <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                                <span className="text-sm text-text-muted">No skills found</span>
+                            </div>
+                        )}
+
+                        {/* Info Card (Left Center) */}
                         <AnimatePresence>
                             {showCard && (
                                 <motion.div
@@ -567,9 +605,9 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                                     {/* Header */}
                                     <div className="flex items-start justify-between p-3 border-b border-border flex-shrink-0">
                                         <div className="flex items-center gap-2">
-                                            {cardIcon && (
+                                            {CardIcon && (
                                                 <div className="p-1.5 bg-surface rounded border border-border">
-                                                    <cardIcon className="w-4 h-4 text-accent" strokeWidth={1.5} />
+                                                    <CardIcon className="w-4 h-4 text-accent" strokeWidth={1.5} />
                                                 </div>
                                             )}
                                             <div>
@@ -593,12 +631,10 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
 
                                     {/* Scrollable Content */}
                                     <div className="flex-1 overflow-y-auto p-3">
-                                        {/* Description */}
                                         <p className="text-[11px] text-text-secondary leading-relaxed mb-3">
                                             {cardDescription}
                                         </p>
 
-                                        {/* Use cases */}
                                         {cardUseCases && cardUseCases.length > 0 && (
                                             <div className="mb-3">
                                                 <span className="text-[9px] font-mono text-text-muted uppercase tracking-widest block mb-1.5">
@@ -617,7 +653,6 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                                             </div>
                                         )}
 
-                                        {/* Related skills */}
                                         {cardRelated && cardRelated.length > 0 && (
                                             <div>
                                                 <span className="text-[9px] font-mono text-text-muted uppercase tracking-widest block mb-1.5">
@@ -647,17 +682,13 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                                             </div>
                                         )}
 
-                                        {/* Hub info - show connected skills count */}
                                         {selectedHub && (
                                             <div className="mt-2">
                                                 <span className="text-[9px] font-mono text-text-muted uppercase tracking-widest block mb-1.5">
                                                     {'// '}skills
                                                 </span>
                                                 <span className="text-[10px] text-text-secondary">
-                                                    {graphData.links.filter(l => {
-                                                        const sourceId = typeof l.source === 'string' ? l.source : l.source.id
-                                                        return sourceId === selectedHub.id && l.linkType === 'hub-to-skill'
-                                                    }).length} skills in this category
+                                                    {getHubSkillCount(selectedHub.id)} skills in this category
                                                 </span>
                                             </div>
                                         )}
@@ -729,7 +760,6 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
 
                                         ctx.globalAlpha = visibility
 
-                                        // Draw selection ring
                                         if (isSelected) {
                                             ctx.beginPath()
                                             ctx.arc(node.x!, node.y!, nodeSize + 4, 0, 2 * Math.PI)
@@ -738,7 +768,6 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                                             ctx.stroke()
                                         }
 
-                                        // Draw node circle
                                         ctx.beginPath()
                                         ctx.arc(node.x!, node.y!, nodeSize, 0, 2 * Math.PI)
                                         ctx.fillStyle = node.color
@@ -750,7 +779,6 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                                             ctx.stroke()
                                         }
 
-                                        // Draw label
                                         const fontSize = isHub
                                             ? Math.max(12 / globalScale, 3)
                                             : Math.max(10 / globalScale, 2)
@@ -763,36 +791,59 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                                             ctx.fillText(label, node.x!, node.y! + nodeSize + fontSize * 0.8)
                                         }
 
-                                        // Draw hover tooltip
+                                        // Hover tooltip with max width and word wrap
                                         if (isHovered && node.shortDescription && globalScale > 0.5) {
                                             const tooltipText = node.shortDescription
                                             const tooltipFontSize = Math.max(9 / globalScale, 2.5)
+                                            const maxWidth = 120 / globalScale
                                             ctx.font = `${tooltipFontSize}px Inter, sans-serif`
-                                            const textWidth = ctx.measureText(tooltipText).width
+
+                                            // Word wrap
+                                            const words = tooltipText.split(' ')
+                                            const lines: string[] = []
+                                            let currentLine = ''
+
+                                            words.forEach((word: string) => {
+                                                const testLine = currentLine ? `${currentLine} ${word}` : word
+                                                const testWidth = ctx.measureText(testLine).width
+                                                if (testWidth > maxWidth && currentLine) {
+                                                    lines.push(currentLine)
+                                                    currentLine = word
+                                                } else {
+                                                    currentLine = testLine
+                                                }
+                                            })
+                                            if (currentLine) lines.push(currentLine)
+
                                             const padding = 4 / globalScale
+                                            const lineHeight = tooltipFontSize * 1.3
+                                            const boxWidth = Math.min(maxWidth, Math.max(...lines.map(l => ctx.measureText(l).width))) + padding * 2
+                                            const boxHeight = lines.length * lineHeight + padding * 2
                                             const tooltipY = node.y! + nodeSize + fontSize * 1.8
 
                                             ctx.fillStyle = SURFACE
                                             ctx.fillRect(
-                                                node.x! - textWidth / 2 - padding,
-                                                tooltipY - tooltipFontSize / 2 - padding,
-                                                textWidth + padding * 2,
-                                                tooltipFontSize + padding * 2
+                                                node.x! - boxWidth / 2,
+                                                tooltipY - padding,
+                                                boxWidth,
+                                                boxHeight
                                             )
 
                                             ctx.strokeStyle = BORDER
                                             ctx.lineWidth = 0.5 / globalScale
                                             ctx.strokeRect(
-                                                node.x! - textWidth / 2 - padding,
-                                                tooltipY - tooltipFontSize / 2 - padding,
-                                                textWidth + padding * 2,
-                                                tooltipFontSize + padding * 2
+                                                node.x! - boxWidth / 2,
+                                                tooltipY - padding,
+                                                boxWidth,
+                                                boxHeight
                                             )
 
                                             ctx.fillStyle = TEXT_MUTED
                                             ctx.textAlign = 'center'
-                                            ctx.textBaseline = 'middle'
-                                            ctx.fillText(tooltipText, node.x!, tooltipY)
+                                            ctx.textBaseline = 'top'
+                                            lines.forEach((line, i) => {
+                                                ctx.fillText(line, node.x!, tooltipY + i * lineHeight)
+                                            })
                                         }
 
                                         ctx.globalAlpha = 1
