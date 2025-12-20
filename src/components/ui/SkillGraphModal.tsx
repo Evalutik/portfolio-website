@@ -334,6 +334,10 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
         setSelectedSkill(null)
         setSelectedHub(null)
         applyFilter('')
+        // Reheat simulation for visual feedback on deselection
+        if (fgRef.current?.d3ReheatSimulation) {
+            fgRef.current.d3ReheatSimulation()
+        }
     }, [applyFilter])
 
     // Easing function for smooth camera movement
@@ -544,29 +548,51 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
             document.body.style.overflow = 'hidden'
             document.body.style.paddingRight = `${scrollbarWidth}px`
             document.body.style.overscrollBehavior = 'none'
+            // Also hide on html element to prevent scrollbar during React re-renders
+            document.documentElement.style.overflow = 'hidden'
 
             updateDimensions()
             window.addEventListener('resize', updateDimensions)
 
             const configureGraph = () => {
-                if (fgRef.current && !graphConfiguredRef.current) {
-                    configureForces()
-                    graphConfiguredRef.current = true  // Mark as configured immediately
-                    setTimeout(() => {
-                        if (fgRef.current && !userInteractedRef.current) {
-                            fgRef.current.zoomToFit(400, HOME_ZOOM_PADDING)
+                // Ensure dimensions are up to date before configuring
+                updateDimensions()
+
+                // Only configure if we have valid dimensions and graph ref
+                if (fgRef.current && !graphConfiguredRef.current && containerRef.current) {
+                    const cw = containerRef.current.clientWidth
+                    const ch = containerRef.current.clientHeight
+
+                    // Wait for container to have reasonable dimensions
+                    if (cw > 100 && ch > 100) {
+                        configureForces()
+                        graphConfiguredRef.current = true
+                        // Retry zoomToFit multiple times to handle race conditions
+                        const tryZoom = (delay: number) => {
+                            setTimeout(() => {
+                                if (fgRef.current && !userInteractedRef.current) {
+                                    fgRef.current.zoomToFit(400, HOME_ZOOM_PADDING)
+                                }
+                            }, delay)
                         }
-                    }, 500)
+                        tryZoom(200)
+                        tryZoom(500)
+                        tryZoom(1000)
+                        tryZoom(2000)
+                    }
                 }
             }
 
-            setTimeout(configureGraph, 100)
-            setTimeout(configureGraph, 800)
+            // Multiple retries at different intervals
+            setTimeout(configureGraph, 50)
+            setTimeout(configureGraph, 200)
+            setTimeout(configureGraph, 600)
 
             return () => {
                 document.body.style.overflow = ''
                 document.body.style.paddingRight = ''
                 document.body.style.overscrollBehavior = ''
+                document.documentElement.style.overflow = ''
                 window.removeEventListener('resize', updateDimensions)
             }
         }
@@ -610,7 +636,8 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
     const cardExperience = selectedSkill?.experience
     const cardUseCases = selectedSkill?.useCases
     const cardRelated = selectedSkill?.relatedTo
-    const cardCategory = selectedSkill?.category
+    // Category comes from the graph node, not skill config
+    const cardCategory = selectedNode && !selectedNode.isHub ? selectedNode.category : undefined
     const cardCategoryColor = cardCategory ? CATEGORY_COLORS[cardCategory] : undefined
 
     return (
@@ -672,7 +699,7 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                             {/* Info Button */}
                             <button
                                 onClick={openWelcome}
-                                className={`${panelClass} p-1.5 hover:bg-surface-light hover:border-border-light transition-all duration-200`}
+                                className={`${panelClass} px-1.5 py-1.5 self-stretch flex items-center hover:bg-surface-light hover:border-border-light transition-all duration-200`}
                                 title="About Skill Galaxy"
                             >
                                 <Info className="w-3.5 h-3.5 text-text-muted" />
@@ -680,7 +707,7 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                             {/* Close Button */}
                             <button
                                 onClick={onClose}
-                                className={`${panelClass} px-3 py-1 hover:bg-surface-light hover:border-border-light transition-all duration-200 btn-secondary-shine`}
+                                className={`${panelClass} px-3 py-1.5 flex items-center self-stretch hover:bg-surface-light hover:border-border-light transition-all duration-200 btn-secondary-shine`}
                             >
                                 <span className="text-xs text-text-muted">Close</span>
                             </button>
@@ -1066,10 +1093,10 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                             >
                                 <motion.div
                                     className={`${panelClass} max-w-sm mx-4 p-4`}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -30 }}
-                                    transition={{ duration: 0.25, delay: 0.3 }}
+                                    initial={{ opacity: 0, filter: 'blur(8px)' }}
+                                    animate={{ opacity: 1, filter: 'blur(0px)' }}
+                                    exit={{ opacity: 0, filter: 'blur(8px)' }}
+                                    transition={{ duration: 0.3, delay: 0.3 }}
                                     onClick={(e) => e.stopPropagation()}
                                 >
                                     <h2 className="text-sm font-semibold text-text-primary mb-2">
@@ -1095,7 +1122,7 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                                     </ul>
                                     <button
                                         onClick={closeWelcome}
-                                        className={`${panelClass} px-4 py-1 hover:bg-surface-light hover:border-border-light transition-all duration-200 btn-secondary-shine`}
+                                        className={`${panelClass} px-3 py-1.5 flex items-center hover:bg-surface-light hover:border-border-light transition-all duration-200 btn-secondary-shine`}
                                     >
                                         <span className="text-xs text-text-primary">Beautiful!</span>
                                     </button>
