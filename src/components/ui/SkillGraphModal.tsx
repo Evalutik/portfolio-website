@@ -3,14 +3,15 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useCallback, useState, useRef, useMemo } from 'react'
 import dynamic from 'next/dynamic'
-import { X, Plus, Minus, Home } from 'lucide-react'
+import { X, Plus, Minus, Home, Search } from 'lucide-react'
 import {
     allSkills,
     getSkillCategory,
     getSkillByTitle,
     SkillConfig,
     graphHubs,
-    categoryToHub
+    categoryToHub,
+    GraphHub
 } from '@/config/skills'
 import {
     BACKGROUND,
@@ -51,6 +52,8 @@ interface GraphNode {
     isHub?: boolean
     hubType?: 'main' | 'category'
     shortDescription?: string
+    description?: string
+    hubData?: GraphHub
     x?: number
     y?: number
     vx?: number
@@ -68,13 +71,12 @@ interface GraphData {
     links: GraphLink[]
 }
 
-// Consistent panel styling
-const panelClass = "bg-surface/80 backdrop-blur-md border border-border rounded-xl"
+// Consistent styling - same rounded corners for all panels
+const panelClass = "bg-surface/80 backdrop-blur-md border border-border rounded-lg"
 
-// Get short description from skill (use first sentence if no shortDescription)
+// Get short description from skill
 function getShortDescription(skill: SkillConfig): string {
     if (skill.shortDescription) return skill.shortDescription
-    // Extract first sentence or first 50 chars
     const firstSentence = skill.description.split('.')[0]
     if (firstSentence.length <= 50) return firstSentence
     return firstSentence.substring(0, 47) + '...'
@@ -89,17 +91,19 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
     const [nodeVisibility, setNodeVisibility] = useState<Record<string, number>>({})
     const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null)
     const [selectedSkill, setSelectedSkill] = useState<SkillConfig | null>(null)
+    const [selectedHub, setSelectedHub] = useState<GraphHub | null>(null)
     const [hoveredNode, setHoveredNode] = useState<GraphNode | null>(null)
     const containerRef = useRef<HTMLDivElement>(null)
     const fgRef = useRef<any>(null)
     const graphConfiguredRef = useRef(false)
 
-    // Handle escape key and clicks
+    // Handle escape key
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
         if (e.key === 'Escape') {
             if (selectedNode) {
                 setSelectedNode(null)
                 setSelectedSkill(null)
+                setSelectedHub(null)
             } else {
                 onClose()
             }
@@ -122,6 +126,9 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                 color: TEXT_MUTED,
                 isHub: true,
                 hubType: 'main',
+                shortDescription: hub.shortDescription,
+                description: hub.description,
+                hubData: hub,
             })
         })
 
@@ -135,6 +142,9 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                 color: CATEGORY_COLORS[hub.name] || TEXT_MUTED,
                 isHub: true,
                 hubType: 'category',
+                shortDescription: hub.shortDescription,
+                description: hub.description,
+                hubData: hub,
             })
 
             if (hub.parentHub) {
@@ -188,28 +198,36 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
         return { nodes, links }
     }, [])
 
-    // Initialize visibility
-    useEffect(() => {
-        const initialVisibility: Record<string, number> = {}
-        graphData.nodes.forEach(node => {
-            initialVisibility[node.id] = 1
-        })
-        setNodeVisibility(initialVisibility)
-    }, [graphData])
-
-    // Search filtering
-    useEffect(() => {
-        const query = searchQuery.toLowerCase().trim()
+    // Apply visibility filter based on search or selected hub
+    const applyFilter = useCallback((query: string, hubId?: string) => {
         const newVisibility: Record<string, number> = {}
 
-        if (!query) {
+        if (!query && !hubId) {
+            // No filter - all nodes visible
             graphData.nodes.forEach(node => {
                 newVisibility[node.id] = 1
             })
+        } else if (hubId) {
+            // Hub filter - highlight hub and its connected skills
+            graphData.nodes.forEach(node => {
+                if (node.id === hubId || node.id === 'hub-skills') {
+                    newVisibility[node.id] = 1
+                } else {
+                    newVisibility[node.id] = 0.15
+                }
+            })
+            // Find skills connected to this hub
+            graphData.links.forEach(link => {
+                const sourceId = typeof link.source === 'string' ? link.source : link.source.id
+                const targetId = typeof link.target === 'string' ? link.target : link.target.id
+                if (sourceId === hubId) newVisibility[targetId] = 1
+                if (targetId === hubId) newVisibility[sourceId] = 1
+            })
         } else {
+            // Search filter
             const matchingNodeIds = new Set(
                 graphData.nodes
-                    .filter(node => node.name.toLowerCase().includes(query))
+                    .filter(node => node.name.toLowerCase().includes(query.toLowerCase()))
                     .map(node => node.id)
             )
 
@@ -217,7 +235,6 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
             graphData.links.forEach(link => {
                 const sourceId = typeof link.source === 'string' ? link.source : link.source.id
                 const targetId = typeof link.target === 'string' ? link.target : link.target.id
-
                 if (matchingNodeIds.has(sourceId)) connectedNodeIds.add(targetId)
                 if (matchingNodeIds.has(targetId)) connectedNodeIds.add(sourceId)
             })
@@ -234,29 +251,86 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
         }
 
         setNodeVisibility(newVisibility)
-    }, [searchQuery, graphData])
+    }, [graphData])
 
-    // Handle node click - show info card instead of closing modal
-    const handleNodeClick = useCallback((node: any) => {
-        if (node.isHub) return
+    // Initialize visibility
+    useEffect(() => {
+        const initialVisibility: Record<string, number> = {}
+        graphData.nodes.forEach(node => {
+            initialVisibility[node.id] = 1
+        })
+        setNodeVisibility(initialVisibility)
+    }, [graphData])
 
-        const skill = getSkillByTitle(node.id)
-        if (skill) {
-            setSelectedNode(node)
-            setSelectedSkill(skill)
+    // Search filtering
+    useEffect(() => {
+        if (searchQuery.trim()) {
+            applyFilter(searchQuery.trim())
+        } else {
+            applyFilter('')
         }
-    }, [])
+    }, [searchQuery, applyFilter])
 
-    // Handle background click - deselect node
+    // Clear all filters and selection
+    const clearAll = useCallback(() => {
+        setSearchQuery('')
+        setSelectedNode(null)
+        setSelectedSkill(null)
+        setSelectedHub(null)
+        applyFilter('')
+    }, [applyFilter])
+
+    // Handle node click
+    const handleNodeClick = useCallback((node: any) => {
+        // If node has low visibility, clear filter first
+        const currentVisibility = nodeVisibility[node.id] ?? 1
+        if (currentVisibility < 0.5) {
+            clearAll()
+        }
+
+        if (node.isHub) {
+            // Select hub and show hub info
+            setSelectedNode(node)
+            setSelectedSkill(null)
+            setSelectedHub(node.hubData || null)
+        } else {
+            const skill = getSkillByTitle(node.id)
+            if (skill) {
+                setSelectedNode(node)
+                setSelectedSkill(skill)
+                setSelectedHub(null)
+            }
+        }
+    }, [nodeVisibility, clearAll])
+
+    // Handle legend category click
+    const handleCategoryClick = useCallback((category: string) => {
+        const hubId = categoryToHub[category]
+        if (hubId) {
+            const hubNode = graphData.nodes.find(n => n.id === hubId)
+            const hub = graphHubs.find(h => h.id === hubId)
+            if (hubNode && hub) {
+                setSearchQuery('')
+                setSelectedNode(hubNode)
+                setSelectedSkill(null)
+                setSelectedHub(hub)
+                applyFilter('', hubId)
+            }
+        }
+    }, [graphData, applyFilter])
+
+    // Handle background click
     const handleBackgroundClick = useCallback(() => {
         setSelectedNode(null)
         setSelectedSkill(null)
+        setSelectedHub(null)
     }, [])
 
-    // Close skill card
-    const closeSkillCard = useCallback(() => {
+    // Close card
+    const closeCard = useCallback(() => {
         setSelectedNode(null)
         setSelectedSkill(null)
+        setSelectedHub(null)
     }, [])
 
     // Zoom controls
@@ -275,12 +349,13 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
     }, [])
 
     const handleZoomReset = useCallback(() => {
+        clearAll()
         if (fgRef.current) {
             fgRef.current.zoomToFit(400, 50)
         }
-    }, [])
+    }, [clearAll])
 
-    // Configure graph forces
+    // Configure forces
     const configureForces = useCallback(() => {
         if (!fgRef.current) return
 
@@ -300,7 +375,7 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
         fgRef.current.d3ReheatSimulation()
     }, [])
 
-    // Update dimensions and setup
+    // Setup
     useEffect(() => {
         const updateDimensions = () => {
             if (containerRef.current) {
@@ -322,11 +397,9 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
             window.addEventListener('resize', updateDimensions)
             window.addEventListener('keydown', handleKeyDown)
 
-            // Configure forces and fit to screen
             const configureGraph = () => {
                 if (fgRef.current && !graphConfiguredRef.current) {
                     configureForces()
-                    // Wait for simulation to settle, then zoom to fit
                     setTimeout(() => {
                         if (fgRef.current) {
                             fgRef.current.zoomToFit(400, 50)
@@ -336,9 +409,7 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                 }
             }
 
-            // Initial configuration
             setTimeout(configureGraph, 100)
-            // Backup configuration after simulation settles
             setTimeout(configureGraph, 800)
 
             return () => {
@@ -349,10 +420,10 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                 window.removeEventListener('keydown', handleKeyDown)
             }
         } else {
-            // Reset state when modal closes
             graphConfiguredRef.current = false
             setSelectedNode(null)
             setSelectedSkill(null)
+            setSelectedHub(null)
             setSearchQuery('')
         }
     }, [isOpen, handleKeyDown, configureForces])
@@ -365,6 +436,15 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
         const targetVis = nodeVisibility[targetId] ?? 1
         return Math.min(sourceVis, targetVis)
     }, [nodeVisibility])
+
+    // Determine what to show in card
+    const showCard = selectedSkill || selectedHub
+    const cardTitle = selectedSkill?.title || selectedHub?.name || ''
+    const cardDescription = selectedSkill?.description || selectedHub?.description || ''
+    const cardIcon = selectedSkill?.icon
+    const cardExperience = selectedSkill?.experience
+    const cardUseCases = selectedSkill?.useCases
+    const cardRelated = selectedSkill?.relatedTo
 
     return (
         <AnimatePresence>
@@ -397,19 +477,28 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                     >
                         {/* Search Panel (Top Center) */}
                         <div className="absolute top-5 left-1/2 -translate-x-1/2 z-10">
-                            <div className={`${panelClass} px-3 py-2`}>
+                            <div className={`${panelClass} px-2 py-1.5 flex items-center gap-1.5`}>
+                                <Search className="w-3.5 h-3.5 text-text-muted flex-shrink-0" />
                                 <input
                                     type="text"
-                                    placeholder="Search skills..."
+                                    placeholder="Search..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     autoFocus
-                                    className="bg-transparent text-sm text-text-primary focus:outline-none placeholder:text-text-muted w-36"
+                                    className="bg-transparent text-xs text-text-primary focus:outline-none placeholder:text-text-muted w-24"
                                 />
+                                {searchQuery && (
+                                    <button
+                                        onClick={clearAll}
+                                        className="p-0.5 hover:bg-surface-light rounded transition-colors flex-shrink-0"
+                                    >
+                                        <X className="w-3 h-3 text-text-muted" />
+                                    </button>
+                                )}
                             </div>
                         </div>
 
-                        {/* Close Button (Top Right) - Secondary style */}
+                        {/* Close Button (Top Right) */}
                         <div className="absolute top-5 right-5 z-10">
                             <button
                                 onClick={onClose}
@@ -420,101 +509,106 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                         </div>
 
                         {/* Legend Panel (Right Center) */}
-                        <div className={`absolute right-5 top-1/2 -translate-y-1/2 z-10 ${panelClass} p-4 hidden md:block`}>
-                            <span className="text-[10px] font-mono text-text-muted uppercase tracking-widest mb-3 block">
+                        <div className={`absolute right-5 top-1/2 -translate-y-1/2 z-10 ${panelClass} p-3 hidden md:block`}>
+                            <span className="text-[10px] font-mono text-text-muted uppercase tracking-widest mb-2 block">
                                 {'// '}categories
                             </span>
                             {Object.entries(CATEGORY_COLORS).map(([category, color]) => (
-                                <div key={category} className="flex items-center gap-2 mb-2 last:mb-0">
+                                <button
+                                    key={category}
+                                    onClick={() => handleCategoryClick(category)}
+                                    className="flex items-center gap-2 mb-1.5 last:mb-0 w-full text-left hover:bg-surface-light rounded px-1 py-0.5 -mx-1 transition-colors"
+                                >
                                     <div
-                                        className="w-2 h-2 rounded-full"
+                                        className="w-2 h-2 rounded-full flex-shrink-0"
                                         style={{ backgroundColor: color }}
                                     />
-                                    <span className="text-xs text-text-secondary">{category}</span>
-                                </div>
+                                    <span className="text-xs text-text-secondary hover:text-text-primary transition-colors">{category}</span>
+                                </button>
                             ))}
                         </div>
 
-                        {/* Zoom Controls (Bottom Right) */}
-                        <div className="absolute bottom-5 right-5 z-10 flex flex-col gap-2">
+                        {/* Zoom Controls (Bottom Right) - Smaller, reordered: +, home, - */}
+                        <div className="absolute bottom-5 right-5 z-10 flex flex-col gap-1">
                             <button
                                 onClick={handleZoomIn}
-                                className={`${panelClass} p-2 hover:bg-surface-light hover:border-border-light transition-all duration-200`}
+                                className={`${panelClass} p-1.5 hover:bg-surface-light hover:border-border-light transition-all duration-200`}
                                 title="Zoom In"
                             >
-                                <Plus className="w-4 h-4 text-text-muted" />
-                            </button>
-                            <button
-                                onClick={handleZoomOut}
-                                className={`${panelClass} p-2 hover:bg-surface-light hover:border-border-light transition-all duration-200`}
-                                title="Zoom Out"
-                            >
-                                <Minus className="w-4 h-4 text-text-muted" />
+                                <Plus className="w-3 h-3 text-text-muted" />
                             </button>
                             <button
                                 onClick={handleZoomReset}
-                                className={`${panelClass} p-2 hover:bg-surface-light hover:border-border-light transition-all duration-200`}
-                                title="Fit to Screen"
+                                className={`${panelClass} p-1.5 hover:bg-surface-light hover:border-border-light transition-all duration-200`}
+                                title="Reset View"
                             >
-                                <Home className="w-4 h-4 text-text-muted" />
+                                <Home className="w-3 h-3 text-text-muted" />
+                            </button>
+                            <button
+                                onClick={handleZoomOut}
+                                className={`${panelClass} p-1.5 hover:bg-surface-light hover:border-border-light transition-all duration-200`}
+                                title="Zoom Out"
+                            >
+                                <Minus className="w-3 h-3 text-text-muted" />
                             </button>
                         </div>
 
-                        {/* Skill Info Card (Left Side) */}
+                        {/* Info Card (Left Center) - Max 55% height */}
                         <AnimatePresence>
-                            {selectedSkill && (
+                            {showCard && (
                                 <motion.div
-                                    className={`absolute left-5 top-1/2 -translate-y-1/2 z-20 ${panelClass} w-72 max-h-[70vh] overflow-hidden flex flex-col`}
+                                    className={`absolute left-5 top-1/2 -translate-y-1/2 z-20 ${panelClass} w-64 flex flex-col`}
+                                    style={{ maxHeight: '55vh' }}
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: -20 }}
                                     transition={{ duration: 0.2 }}
                                 >
                                     {/* Header */}
-                                    <div className="flex items-start justify-between p-4 border-b border-border">
-                                        <div className="flex items-center gap-3">
-                                            {selectedSkill.icon && (
-                                                <div className="p-2 bg-surface rounded-lg border border-border">
-                                                    <selectedSkill.icon className="w-5 h-5 text-accent" strokeWidth={1.5} />
+                                    <div className="flex items-start justify-between p-3 border-b border-border flex-shrink-0">
+                                        <div className="flex items-center gap-2">
+                                            {cardIcon && (
+                                                <div className="p-1.5 bg-surface rounded border border-border">
+                                                    <cardIcon className="w-4 h-4 text-accent" strokeWidth={1.5} />
                                                 </div>
                                             )}
                                             <div>
-                                                <h3 className="text-sm font-medium text-text-primary">
-                                                    {selectedSkill.title}
+                                                <h3 className="text-xs font-medium text-text-primary">
+                                                    {cardTitle}
                                                 </h3>
-                                                {selectedSkill.experience && (
-                                                    <span className="text-[10px] font-mono text-text-muted">
-                                                        {selectedSkill.experience}
+                                                {cardExperience && (
+                                                    <span className="text-[9px] font-mono text-text-muted">
+                                                        {cardExperience}
                                                     </span>
                                                 )}
                                             </div>
                                         </div>
                                         <button
-                                            onClick={closeSkillCard}
-                                            className="p-1 hover:bg-surface-light rounded transition-colors"
+                                            onClick={closeCard}
+                                            className="p-0.5 hover:bg-surface-light rounded transition-colors"
                                         >
-                                            <X className="w-4 h-4 text-text-muted" />
+                                            <X className="w-3.5 h-3.5 text-text-muted" />
                                         </button>
                                     </div>
 
                                     {/* Scrollable Content */}
-                                    <div className="flex-1 overflow-y-auto p-4">
+                                    <div className="flex-1 overflow-y-auto p-3">
                                         {/* Description */}
-                                        <p className="text-xs text-text-secondary leading-relaxed mb-4">
-                                            {selectedSkill.description}
+                                        <p className="text-[11px] text-text-secondary leading-relaxed mb-3">
+                                            {cardDescription}
                                         </p>
 
                                         {/* Use cases */}
-                                        {selectedSkill.useCases && selectedSkill.useCases.length > 0 && (
-                                            <div className="mb-4">
-                                                <span className="text-[10px] font-mono text-text-muted uppercase tracking-widest block mb-2">
+                                        {cardUseCases && cardUseCases.length > 0 && (
+                                            <div className="mb-3">
+                                                <span className="text-[9px] font-mono text-text-muted uppercase tracking-widest block mb-1.5">
                                                     {'// '}use cases
                                                 </span>
-                                                <div className="flex flex-wrap gap-1.5">
-                                                    {selectedSkill.useCases.map((useCase) => (
+                                                <div className="flex flex-wrap gap-1">
+                                                    {cardUseCases.map((useCase) => (
                                                         <span
                                                             key={useCase}
-                                                            className="px-2 py-1 text-[10px] bg-surface border border-border rounded text-text-muted"
+                                                            className="px-1.5 py-0.5 text-[9px] bg-surface border border-border rounded text-text-muted"
                                                         >
                                                             {useCase}
                                                         </span>
@@ -524,16 +618,16 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                                         )}
 
                                         {/* Related skills */}
-                                        {selectedSkill.relatedTo && selectedSkill.relatedTo.length > 0 && (
+                                        {cardRelated && cardRelated.length > 0 && (
                                             <div>
-                                                <span className="text-[10px] font-mono text-text-muted uppercase tracking-widest block mb-2">
+                                                <span className="text-[9px] font-mono text-text-muted uppercase tracking-widest block mb-1.5">
                                                     {'// '}related
                                                 </span>
-                                                <div className="flex flex-wrap gap-1.5">
-                                                    {selectedSkill.relatedTo.slice(0, 6).map((related) => (
+                                                <div className="flex flex-wrap gap-1">
+                                                    {cardRelated.slice(0, 6).map((related) => (
                                                         <span
                                                             key={related}
-                                                            className="px-2 py-1 text-[10px] bg-surface border border-border rounded text-text-muted hover:border-accent hover:text-text-secondary cursor-pointer transition-colors"
+                                                            className="px-1.5 py-0.5 text-[9px] bg-surface border border-border rounded text-text-muted hover:border-accent hover:text-text-secondary cursor-pointer transition-colors"
                                                             onClick={() => {
                                                                 const skill = getSkillByTitle(related)
                                                                 if (skill) {
@@ -541,6 +635,7 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                                                                     if (node) {
                                                                         setSelectedNode(node)
                                                                         setSelectedSkill(skill)
+                                                                        setSelectedHub(null)
                                                                     }
                                                                 }
                                                             }}
@@ -549,6 +644,21 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                                                         </span>
                                                     ))}
                                                 </div>
+                                            </div>
+                                        )}
+
+                                        {/* Hub info - show connected skills count */}
+                                        {selectedHub && (
+                                            <div className="mt-2">
+                                                <span className="text-[9px] font-mono text-text-muted uppercase tracking-widest block mb-1.5">
+                                                    {'// '}skills
+                                                </span>
+                                                <span className="text-[10px] text-text-secondary">
+                                                    {graphData.links.filter(l => {
+                                                        const sourceId = typeof l.source === 'string' ? l.source : l.source.id
+                                                        return sourceId === selectedHub.id && l.linkType === 'hub-to-skill'
+                                                    }).length} skills in this category
+                                                </span>
                                             </div>
                                         )}
                                     </div>
@@ -653,8 +763,8 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                                             ctx.fillText(label, node.x!, node.y! + nodeSize + fontSize * 0.8)
                                         }
 
-                                        // Draw hover tooltip with short description
-                                        if (isHovered && !isHub && node.shortDescription && globalScale > 0.5) {
+                                        // Draw hover tooltip
+                                        if (isHovered && node.shortDescription && globalScale > 0.5) {
                                             const tooltipText = node.shortDescription
                                             const tooltipFontSize = Math.max(9 / globalScale, 2.5)
                                             ctx.font = `${tooltipFontSize}px Inter, sans-serif`
@@ -662,7 +772,6 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                                             const padding = 4 / globalScale
                                             const tooltipY = node.y! + nodeSize + fontSize * 1.8
 
-                                            // Background
                                             ctx.fillStyle = SURFACE
                                             ctx.fillRect(
                                                 node.x! - textWidth / 2 - padding,
@@ -671,7 +780,6 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                                                 tooltipFontSize + padding * 2
                                             )
 
-                                            // Border
                                             ctx.strokeStyle = BORDER
                                             ctx.lineWidth = 0.5 / globalScale
                                             ctx.strokeRect(
@@ -681,7 +789,6 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                                                 tooltipFontSize + padding * 2
                                             )
 
-                                            // Text
                                             ctx.fillStyle = TEXT_MUTED
                                             ctx.textAlign = 'center'
                                             ctx.textBaseline = 'middle'

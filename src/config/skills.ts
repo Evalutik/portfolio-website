@@ -34,6 +34,8 @@ export interface GraphHub {
   name: string
   type: 'main' | 'category'
   parentHub?: string  // For category hubs, references the parent hub id
+  description?: string
+  shortDescription?: string
 }
 
 /**
@@ -42,13 +44,47 @@ export interface GraphHub {
  */
 export const graphHubs: GraphHub[] = [
   // Main hub
-  { id: 'hub-skills', name: 'Skills', type: 'main' },
+  {
+    id: 'hub-skills',
+    name: 'Skills',
+    type: 'main',
+    description: 'Technical skills and competencies spanning data engineering, programming, cloud infrastructure, and machine learning. Each category represents a core area of expertise with interconnected technologies.',
+    shortDescription: 'Core technical competencies',
+  },
 
   // Category sub-hubs (all linked to the main hub)
-  { id: 'hub-data-engineering', name: 'Data Engineering', type: 'category', parentHub: 'hub-skills' },
-  { id: 'hub-programming', name: 'Programming', type: 'category', parentHub: 'hub-skills' },
-  { id: 'hub-cloud', name: 'Cloud', type: 'category', parentHub: 'hub-skills' },
-  { id: 'hub-ml-analytics', name: 'ML & Analytics', type: 'category', parentHub: 'hub-skills' },
+  {
+    id: 'hub-data-engineering',
+    name: 'Data Engineering',
+    type: 'category',
+    parentHub: 'hub-skills',
+    description: 'Building robust data pipelines, ETL processes, and data infrastructure. Expertise in batch and stream processing, data warehousing, and orchestration tools.',
+    shortDescription: 'Pipelines & data infrastructure',
+  },
+  {
+    id: 'hub-programming',
+    name: 'Programming',
+    type: 'category',
+    parentHub: 'hub-skills',
+    description: 'Software development across multiple languages and paradigms. From Python for data work to Go for systems, with strong API design and version control practices.',
+    shortDescription: 'Languages & development',
+  },
+  {
+    id: 'hub-cloud',
+    name: 'Cloud',
+    type: 'category',
+    parentHub: 'hub-skills',
+    description: 'Cloud platform expertise across AWS, GCP, and Azure. Infrastructure as code, container orchestration, CI/CD pipelines, and observability.',
+    shortDescription: 'Cloud & infrastructure',
+  },
+  {
+    id: 'hub-ml-analytics',
+    name: 'ML & Analytics',
+    type: 'category',
+    parentHub: 'hub-skills',
+    description: 'Machine learning frameworks, MLOps practices, and data visualization. From model development to production deployment and analytics dashboards.',
+    shortDescription: 'ML & data analytics',
+  },
 ]
 
 /**
