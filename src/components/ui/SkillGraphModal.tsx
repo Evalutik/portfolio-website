@@ -34,12 +34,12 @@ interface SkillGraphModalProps {
     onSkillClick: (skill: SkillConfig) => void
 }
 
-// Category colors for nodes
+// Category colors for nodes - carefully selected for visual distinction and harmony
 const CATEGORY_COLORS: Record<string, string> = {
-    'Data Engineering': '#6366f1',
-    'Programming': '#8b5cf6',
-    'Cloud': '#06b6d4',
-    'ML & Analytics': '#f97316',
+    'Data Engineering': '#3b82f6',  // Blue - reliable, technical
+    'Programming': '#a855f7',        // Purple - creative, logical 
+    'Cloud': '#06b6d4',              // Cyan - modern, scalable
+    'ML & Analytics': '#f59e0b',     // Amber - intelligent, warm
 }
 
 // Extended node type
@@ -79,7 +79,7 @@ const FOCUS_ZOOM = 1.8
 const HOME_ZOOM_PADDING = 50
 
 // Session storage key for welcome popup
-const WELCOME_SEEN_KEY = 'skillGalaxy_welcomeSeen'
+let hasSeenWelcomeThisSession = false  // Simple variable - resets on page reload
 
 // Get short description from skill
 function getShortDescription(skill: SkillConfig): string {
@@ -107,20 +107,17 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
     const searchInputRef = useRef<HTMLInputElement>(null)
     const userInteractedRef = useRef(false)
 
-    // Check if welcome popup should show on first open
+    // Check if welcome popup should show on first open after page reload
     useEffect(() => {
-        if (isOpen) {
-            const hasSeen = sessionStorage.getItem(WELCOME_SEEN_KEY)
-            if (!hasSeen) {
-                setShowWelcome(true)
-            }
+        if (isOpen && !hasSeenWelcomeThisSession) {
+            setShowWelcome(true)
         }
     }, [isOpen])
 
     // Close welcome popup
     const closeWelcome = useCallback(() => {
         setShowWelcome(false)
-        sessionStorage.setItem(WELCOME_SEEN_KEY, 'true')
+        hasSeenWelcomeThisSession = true
         // Focus search after welcome closes
         setTimeout(() => {
             if (searchInputRef.current) {
@@ -407,7 +404,10 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
             setSelectedNode(node)
             setSelectedSkill(null)
             setSelectedHub(node.hubData || null)
-            // No zoom for hubs - just select
+            // Reheat simulation for visual feedback (no zoom for hubs)
+            if (fgRef.current?.d3ReheatSimulation) {
+                fgRef.current.d3ReheatSimulation()
+            }
         } else {
             const skill = getSkillByTitle(node.id)
             if (skill) {
@@ -432,7 +432,10 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                 setSelectedSkill(null)
                 setSelectedHub(hub)
                 applyFilter('', hubId)
-                // No zoom for category selection - just filter
+                // Reheat simulation for visual feedback (no zoom)
+                if (fgRef.current?.d3ReheatSimulation) {
+                    fgRef.current.d3ReheatSimulation()
+                }
             }
         }
     }, [graphData, applyFilter])
@@ -505,11 +508,11 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
         if (target.tagName === 'INPUT' && target !== searchInputRef.current) return
 
         if (e.key === 'Escape') {
+            // Only clear selection, never close the graph
             if (selectedNode) {
                 clearAll()
-            } else {
-                onClose()
             }
+            // Don't close the graph on escape
         } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
             if (searchInputRef.current && document.activeElement !== searchInputRef.current && !showWelcome) {
                 searchInputRef.current.focus()
@@ -519,7 +522,7 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                 searchInputRef.current.focus()
             }
         }
-    }, [onClose, selectedNode, clearAll, showWelcome, closeWelcome])
+    }, [selectedNode, clearAll, showWelcome, closeWelcome])
 
     // Setup - only run core setup when isOpen changes
     useEffect(() => {
@@ -578,12 +581,17 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
         }
     }, [isOpen, handleKeyDown])
 
-    // Focus search when welcome closes
+    // Focus search when welcome closes (not when it's open)
     useEffect(() => {
         if (isOpen && !showWelcome && searchInputRef.current) {
-            setTimeout(() => searchInputRef.current?.focus(), 100)
+            // Only focus if welcome was previously shown and just closed
+            setTimeout(() => {
+                if (!showWelcome && searchInputRef.current) {
+                    searchInputRef.current.focus()
+                }
+            }, 100)
         }
-    }, [isOpen, showWelcome])
+    }, [showWelcome]) // Only trigger when showWelcome changes, not on initial open
 
     // Get link visibility
     const getLinkVisibility = useCallback((link: any) => {
@@ -602,6 +610,8 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
     const cardExperience = selectedSkill?.experience
     const cardUseCases = selectedSkill?.useCases
     const cardRelated = selectedSkill?.relatedTo
+    const cardCategory = selectedSkill?.category
+    const cardCategoryColor = cardCategory ? CATEGORY_COLORS[cardCategory] : undefined
 
     return (
         <AnimatePresence>
@@ -670,9 +680,8 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                             {/* Close Button */}
                             <button
                                 onClick={onClose}
-                                className={`${panelClass} px-3 py-1.5 flex items-center gap-1.5 hover:bg-surface-light hover:border-border-light transition-all duration-200`}
+                                className={`${panelClass} px-3 py-1 hover:bg-surface-light hover:border-border-light transition-all duration-200 btn-secondary-shine`}
                             >
-                                <X className="w-3.5 h-3.5 text-text-muted" />
                                 <span className="text-xs text-text-muted">Close</span>
                             </button>
                         </div>
@@ -751,13 +760,13 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                                     <div className={`${panelClass} w-64 flex flex-col pointer-events-auto`} style={{ maxHeight: '55vh' }}>
                                         {/* Header */}
                                         <div className="flex items-start justify-between p-3 border-b border-border flex-shrink-0">
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-stretch gap-2">
                                                 {CardIcon && (
-                                                    <div className="p-1.5 bg-surface rounded border border-border">
-                                                        <CardIcon className="w-4 h-4 text-accent" strokeWidth={1.5} />
+                                                    <div className="bg-surface rounded border border-border flex items-center justify-center aspect-square self-stretch">
+                                                        <CardIcon className="w-4 h-4 text-accent mx-1.5" strokeWidth={1.5} />
                                                     </div>
                                                 )}
-                                                <div>
+                                                <div className="flex flex-col justify-center">
                                                     <h3 className="text-xs font-medium text-text-primary">
                                                         {cardTitle}
                                                     </h3>
@@ -778,6 +787,19 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
 
                                         {/* Scrollable Content */}
                                         <div className="flex-1 overflow-y-auto p-3">
+                                            {/* Category for skills */}
+                                            {cardCategory && cardCategoryColor && (
+                                                <div className="flex items-center gap-1.5 mb-2">
+                                                    <div
+                                                        className="w-2 h-2 rounded-full flex-shrink-0"
+                                                        style={{ backgroundColor: cardCategoryColor }}
+                                                    />
+                                                    <span className="text-[10px] text-text-muted">
+                                                        {cardCategory}
+                                                    </span>
+                                                </div>
+                                            )}
+
                                             <p className="text-[11px] text-text-secondary leading-relaxed mb-3">
                                                 {cardDescription}
                                             </p>
@@ -940,11 +962,11 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                                             ctx.fillText(label, node.x!, node.y! + nodeSize + fontSize * 0.8)
                                         }
 
-                                        // Hover tooltip
+                                        // Hover tooltip - appears to the right of node
                                         if (isHovered && node.shortDescription && globalScale > 0.5) {
                                             const tooltipText = node.shortDescription
                                             const tooltipFontSize = Math.max(9 / globalScale, 2.5)
-                                            const maxWidth = 120 / globalScale
+                                            const maxWidth = 180 / globalScale  // Wider tooltip
                                             ctx.font = `${tooltipFontSize}px Inter, sans-serif`
 
                                             const words = tooltipText.split(' ')
@@ -963,16 +985,25 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                                             })
                                             if (currentLine) lines.push(currentLine)
 
+                                            // Limit to max 2 lines
+                                            if (lines.length > 2) {
+                                                lines.length = 2
+                                                lines[1] = lines[1].slice(0, -3) + '...'
+                                            }
+
                                             const padding = 4 / globalScale
                                             const lineHeight = tooltipFontSize * 1.3
                                             const boxWidth = Math.min(maxWidth, Math.max(...lines.map(l => ctx.measureText(l).width))) + padding * 2
                                             const boxHeight = lines.length * lineHeight + padding * 2
-                                            const tooltipY = node.y! + nodeSize + fontSize * 1.8
+
+                                            // Position to the right of node
+                                            const tooltipX = node.x! + nodeSize + 8 / globalScale
+                                            const tooltipY = node.y! - boxHeight / 2
 
                                             ctx.fillStyle = SURFACE
                                             ctx.fillRect(
-                                                node.x! - boxWidth / 2,
-                                                tooltipY - padding,
+                                                tooltipX,
+                                                tooltipY,
                                                 boxWidth,
                                                 boxHeight
                                             )
@@ -980,17 +1011,17 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                                             ctx.strokeStyle = BORDER
                                             ctx.lineWidth = 0.5 / globalScale
                                             ctx.strokeRect(
-                                                node.x! - boxWidth / 2,
-                                                tooltipY - padding,
+                                                tooltipX,
+                                                tooltipY,
                                                 boxWidth,
                                                 boxHeight
                                             )
 
                                             ctx.fillStyle = TEXT_MUTED
-                                            ctx.textAlign = 'center'
+                                            ctx.textAlign = 'left'
                                             ctx.textBaseline = 'top'
                                             lines.forEach((line, i) => {
-                                                ctx.fillText(line, node.x!, tooltipY + i * lineHeight)
+                                                ctx.fillText(line, tooltipX + padding, tooltipY + padding + i * lineHeight)
                                             })
                                         }
 
@@ -1031,33 +1062,40 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                                 transition={{ duration: 0.2 }}
+                                onClick={closeWelcome}
                             >
                                 <motion.div
                                     className={`${panelClass} max-w-sm mx-4 p-4`}
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{
-                                        opacity: 0,
-                                        scale: 0.5,
-                                        x: '50vw',
-                                        y: '-40vh'
-                                    }}
-                                    transition={{
-                                        duration: 0.3,
-                                        exit: { duration: 0.4, ease: 'easeIn' }
-                                    }}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -30 }}
+                                    transition={{ duration: 0.25, delay: 0.3 }}
+                                    onClick={(e) => e.stopPropagation()}
                                 >
                                     <h2 className="text-sm font-semibold text-text-primary mb-2">
-                                        Welcome to Skill Galaxy
+                                        Welcome to the Skill Galaxy!
                                     </h2>
-                                    <p className="text-xs text-text-secondary leading-relaxed mb-4 text-left">
-                                        Explore my skills through an interactive network. Each node is a skill,
-                                        connections show relationships. Search to find skills, click categories to filter,
-                                        hover for quick info, or click to dive deeper.
+                                    <p className="text-xs text-text-secondary leading-relaxed mb-3 text-left">
+                                        An interactive map of my technical skills. Explore connections
+                                        between technologies and discover how they work together.
                                     </p>
+                                    <ul className="text-xs text-text-secondary leading-relaxed mb-4 text-left space-y-1">
+                                        <li className="flex gap-2">
+                                            <span className="text-text-primary">•</span>
+                                            <span>Click nodes to view skill details</span>
+                                        </li>
+                                        <li className="flex gap-2">
+                                            <span className="text-text-primary">•</span>
+                                            <span>Search or type to find skills instantly</span>
+                                        </li>
+                                        <li className="flex gap-2">
+                                            <span className="text-text-primary">•</span>
+                                            <span>Filter by category using the legend</span>
+                                        </li>
+                                    </ul>
                                     <button
                                         onClick={closeWelcome}
-                                        className={`${panelClass} px-3 py-1.5 flex items-center justify-center w-full hover:bg-surface-light hover:border-border-light transition-all duration-200`}
+                                        className={`${panelClass} px-4 py-1 hover:bg-surface-light hover:border-border-light transition-all duration-200 btn-secondary-shine`}
                                     >
                                         <span className="text-xs text-text-primary">Beautiful!</span>
                                     </button>

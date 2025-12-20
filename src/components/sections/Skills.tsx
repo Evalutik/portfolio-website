@@ -45,7 +45,7 @@ export function Skills() {
           onClick={() => setShowGraph(true)}
           className="group -mt-10 mb-8 text-text-muted text-sm hover:text-accent transition-colors flex items-center gap-2"
         >
-          <span>Explore skill galaxy</span>
+          <span>Explore the Skill Galaxy</span>
         </button>
       </div>
 
