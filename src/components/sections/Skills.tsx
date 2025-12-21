@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { SectionHeading } from '@/components/ui/SectionHeading'
-import { SkillsMarquee3D } from '@/components/ui/SkillsMarquee3D'
-import { SkillTag } from '@/components/ui/SkillTag'
-import { SkillDetailModal } from '@/components/ui/SkillDetailModal'
-import { SkillGraphModal } from '@/components/ui/SkillGraphModal'
+import { SectionHeading } from '@/components/ui/common/SectionHeading'
+import { SkillsMarquee3D } from '@/components/ui/skills/SkillsMarquee3D'
+import { SkillTag } from '@/components/ui/skills/SkillTag'
+import { SkillDetailModal } from '@/components/ui/skills/SkillDetailModal'
+import { SkillGraphModal } from '@/components/ui/skills/SkillGraphModal'
 import { skillRows, getSkillByTitle, SkillConfig } from '@/config/skills'
 
 export function Skills() {

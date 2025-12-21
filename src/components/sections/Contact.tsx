@@ -1,8 +1,8 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { SectionHeading } from '@/components/ui/SectionHeading'
-import { Button } from '@/components/ui/Button'
+import { SectionHeading } from '@/components/ui/common/SectionHeading'
+import { Button } from '@/components/ui/common/Button'
 import { Github, Linkedin } from 'lucide-react'
 
 export function Contact() {

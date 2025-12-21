@@ -2,10 +2,10 @@
 
 import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { SectionHeading } from '@/components/ui/SectionHeading'
-import { FileTree } from '@/components/ui/FileTree'
-import { Button } from '@/components/ui/Button'
-import { SkillDetailModal } from '@/components/ui/SkillDetailModal'
+import { SectionHeading } from '@/components/ui/common/SectionHeading'
+import { FileTree } from '@/components/ui/projects/FileTree'
+import { Button } from '@/components/ui/common/Button'
+import { SkillDetailModal } from '@/components/ui/skills/SkillDetailModal'
 import { getProjectsByFolder, allProjects, ProjectConfig } from '@/config/projects'
 import { getSkillByTitle, SkillConfig } from '@/config/skills'
 

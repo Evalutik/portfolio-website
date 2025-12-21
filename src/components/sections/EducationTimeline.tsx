@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { SectionHeading } from '@/components/ui/SectionHeading'
-import { TimelineCard } from '@/components/ui/TimelineCard'
+import { SectionHeading } from '@/components/ui/common/SectionHeading'
+import { TimelineCard } from '@/components/ui/timeline/TimelineCard'
 import { MobileEducationTimeline } from './MobileEducationTimeline'
 import { PRIMARY, BORDER_LIGHT, TEXT_MUTED, SURFACE } from '@/config/colors'
 

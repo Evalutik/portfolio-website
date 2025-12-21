@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { TimelineCard } from '@/components/ui/TimelineCard'
+import { TimelineCard } from '@/components/ui/timeline/TimelineCard'
 import { PRIMARY, BORDER_LIGHT, TEXT_MUTED, SURFACE } from '@/config/colors'
 
 if (typeof window !== 'undefined') {

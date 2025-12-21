@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Button } from '@/components/ui/Button'
+import { Button } from '@/components/ui/common/Button'
 
 export function Hero() {
   const containerVariants = {

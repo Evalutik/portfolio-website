@@ -1,8 +1,8 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Button } from './Button'
-import { GlowCard } from './GlowCard'
+import { Button } from '@/components/ui/common/Button'
+import { GlowCard } from '@/components/ui/common/GlowCard'
 
 interface ProjectCardProps {
   title: string

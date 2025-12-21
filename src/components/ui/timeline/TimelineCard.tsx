@@ -1,8 +1,8 @@
 'use client'
 
-import { GlowCard } from './GlowCard'
+import { GlowCard } from '@/components/ui/common/GlowCard'
 
-interface MobileTimelineCardProps {
+interface TimelineCardProps {
     id: number
     title: string
     subtitle: string
@@ -10,35 +10,39 @@ interface MobileTimelineCardProps {
     description: string
     position: 'left' | 'right'
     isVisible: boolean
-    cardProgress: number
+    cardProgress: number // 0-1
     opacity: number
-    markerIndex: number  // Which marker this card belongs to
 }
 
-export function MobileTimelineCard({
+export function TimelineCard({
     title,
     subtitle,
     year,
     description,
+    position,
     isVisible,
+    cardProgress,
     opacity,
-    markerIndex,
-}: MobileTimelineCardProps) {
-    const scale = isVisible ? 1 : 0.95
+}: TimelineCardProps) {
+    const isLeft = position === 'left'
 
-    // Position cards in a staggered layout based on marker index
-    // Each card positioned slightly different to show stacking effect
-    // Cards are positioned above the center where markers appear
-    const topPosition = `${20 + (markerIndex * 2)}%`
+    // Cards slide from their side to center of screen
+    // Start position: off-screen on their side
+    // End position: center of viewport
+    const startX = isLeft ? -100 : 100
+    const translateX = isVisible ? 0 : startX
+    const scale = isVisible ? 1 : 0.9
+
+    // Parallax: card moves up slightly as you scroll past it
+    const yOffset = cardProgress > 0.6 ? (cardProgress - 0.6) * -80 : 0
 
     return (
         <div
-            className="fixed left-1/2 w-[300px] max-w-[85vw] z-30"
+            className="fixed left-1/2 top-1/2 w-[340px] max-w-[85vw] z-30"
             style={{
-                top: topPosition,
-                transform: `translateX(-50%) scale(${scale})`,
+                transform: `translate(-50%, -50%) translateX(${translateX}px) translateY(${yOffset}px) scale(${scale})`,
                 opacity: Math.max(0, Math.min(1, opacity)),
-                transition: 'opacity 0.4s ease-out, transform 0.4s ease-out',
+                transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
                 pointerEvents: isVisible ? 'auto' : 'none',
                 visibility: opacity > 0.05 ? 'visible' : 'hidden',
             }}
@@ -51,14 +55,14 @@ export function MobileTimelineCard({
                 }}
             >
                 <GlowCard>
-                    <div className="p-4">
+                    <div className="p-5">
                         {/* Year badge */}
-                        <div className="inline-block px-3 py-1 mb-2 text-xs font-mono rounded-full bg-accent/10 text-accent border border-accent/20">
+                        <div className="inline-block px-3 py-1 mb-3 text-xs font-mono rounded-full bg-accent/10 text-accent border border-accent/20">
                             {year}
                         </div>
 
                         {/* Title */}
-                        <h3 className="text-base font-semibold text-text-primary mb-1">
+                        <h3 className="text-lg font-semibold text-text-primary mb-1">
                             {title}
                         </h3>
 
@@ -68,7 +72,7 @@ export function MobileTimelineCard({
                         </p>
 
                         {/* Description */}
-                        <p className="text-xs text-text-secondary leading-relaxed">
+                        <p className="text-sm text-text-secondary leading-relaxed">
                             {description}
                         </p>
                     </div>
@@ -77,3 +81,4 @@ export function MobileTimelineCard({
         </div>
     )
 }
+

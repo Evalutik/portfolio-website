@@ -6,12 +6,12 @@ import { Education } from '@/components/sections/Education'
 import { Expertise } from '@/components/sections/Expertise'
 import { Contact } from '@/components/sections/Contact'
 import { Navigation } from '@/components/ui/Navigation'
-import { ParticlesBackground } from '@/components/ui/ParticlesBackground'
-import { GlowingBlobs } from '@/components/ui/GlowingBlobs'
-import { SectionDivider } from '@/components/ui/SectionDivider'
-import { FloatingCode } from '@/components/ui/FloatingCode'
-import { CursorGlow } from '@/components/ui/CursorGlow'
-import { ParallaxGrid } from '@/components/ui/ParallaxGrid'
+import { ParticlesBackground } from '@/components/ui/effects/ParticlesBackground'
+import { GlowingBlobs } from '@/components/ui/effects/GlowingBlobs'
+import { SectionDivider } from '@/components/ui/common/SectionDivider'
+import { FloatingCode } from '@/components/ui/effects/FloatingCode'
+import { CursorGlow } from '@/components/ui/effects/CursorGlow'
+import { ParallaxGrid } from '@/components/ui/effects/ParallaxGrid'
 
 export default function Home() {
   return (

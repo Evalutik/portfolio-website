@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { SectionHeading } from '@/components/ui/SectionHeading'
+import { SectionHeading } from '@/components/ui/common/SectionHeading'
 
 const expertise = [
   { label: 'Data Engineering', level: 95 },
