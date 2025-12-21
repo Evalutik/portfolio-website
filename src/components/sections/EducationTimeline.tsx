@@ -115,17 +115,16 @@ export function EducationTimeline() {
             // Since Marker 1 is at 250, the line will draw exactly to the center of the viewport (500/2)
             const viewportOffset = 0
 
-            let cardOpacity = 0
-            if (segmentProgress > 0.95) {
-                cardOpacity = (segmentProgress - 0.95) / 0.05
-            }
+            // First card: trigger when line reaches the marker (at segmentProgress = 1.0)
+            const triggered = segmentProgress >= 1.0
+            const cardOpacity = triggered ? 1 : 0
 
             return {
                 drawProgress,
                 viewportOffset,
-                activeMarker: segmentProgress > 0.95 ? 0 : -1,
+                activeMarker: triggered ? 0 : -1,
                 cardOpacity,
-                cardVisible: cardOpacity > 0.05,
+                cardVisible: triggered,
             }
         }
 
