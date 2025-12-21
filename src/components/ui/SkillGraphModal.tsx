@@ -646,7 +646,7 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                     transition={{ duration: 0.2 }}
                     onWheel={(e) => e.stopPropagation()}
                 >
-                    {/* Dark backdrop */}
+                    {/* Dark backdrop with dots pattern */}
                     <motion.div
                         className="absolute inset-0"
                         style={{ backgroundColor: BACKGROUND }}
@@ -892,6 +892,8 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
 
                         {/* Graph container */}
                         <div ref={containerRef} className="absolute inset-0 z-0">
+                            {/* Dots pattern overlay - above canvas */}
+                            <div className="absolute inset-0 z-10 bg-dots opacity-40 pointer-events-none" />
                             {dimensions.width > 0 && (
                                 <ForceGraph2D
                                     ref={fgRef}
