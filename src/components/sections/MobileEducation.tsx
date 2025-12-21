@@ -22,7 +22,7 @@ const MOBILE_MARKER_Y_POSITIONS = [300, 600, 950, 1350, 1800]
 const MOBILE_MARKER_X = 375
 const PATH_TOTAL_LENGTH = 2000
 
-export function MobileEducationTimeline({ educationData }: MobileTimelineProps) {
+export function MobileEducation({ educationData }: MobileTimelineProps) {
     const timelineContainerRef = useRef<HTMLDivElement>(null)
     const pathRef = useRef<SVGPathElement>(null)
     const [scrollProgress, setScrollProgress] = useState(0)
