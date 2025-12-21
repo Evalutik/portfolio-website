@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { FileTree } from '@/components/ui/FileTree'
 import { Button } from '@/components/ui/Button'
@@ -48,37 +48,44 @@ export function Projects() {
         {/* Preview Panel - Right Side - Mac OS Window Style */}
         <div className="flex-1 min-w-0">
           <div className="card overflow-hidden">
-            {/* Window Title Bar - Mac OS Style */}
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-surface/50">
-              {/* Traffic lights */}
+            {/* Compact Window Title Bar */}
+            <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-surface/30">
+              {/* Traffic lights - smaller */}
               <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                <div className="w-3 h-3 rounded-full bg-green-500/80" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#ff5f57]" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#febc2e]" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#28c840]" />
               </div>
 
-              {/* File path in title bar */}
-              <div className="flex-1 text-center">
-                <span className="text-[11px] font-mono text-text-muted">
-                  ~/src/projects/{selectedProject.folder}/{selectedProject.fileName}
-                </span>
-              </div>
-
-              {/* Spacer to balance traffic lights */}
-              <div className="w-[54px]" />
+              {/* File path - right aligned */}
+              <span className="text-[10px] font-mono text-text-muted">
+                {selectedProject.folder}/{selectedProject.fileName}
+              </span>
             </div>
 
-            {/* Content area - matching Contact card padding (p-5) */}
-            <div className="p-5 flex flex-col">
-              {/* Title */}
-              <h3 className="text-lg font-medium text-text-primary mb-3">
-                {selectedProject.title}
-              </h3>
+            {/* Content area */}
+            <div className="p-5">
+              {/* Title with subtle animation on change */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={selectedProject.id}
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -5 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <h3 className="text-lg font-medium text-text-primary mb-3">
+                    {selectedProject.title}
+                  </h3>
 
-              {/* Description */}
-              <p className="text-text-muted text-sm leading-relaxed mb-6">
-                {selectedProject.description}
-              </p>
+                  {/* Description - supports multiple paragraphs */}
+                  <div className="text-text-muted text-sm leading-relaxed mb-6 space-y-3">
+                    {selectedProject.description.split('\n\n').map((paragraph, idx) => (
+                      <p key={idx}>{paragraph}</p>
+                    ))}
+                  </div>
+                </motion.div>
+              </AnimatePresence>
 
               {/* Tech stack */}
               <div className="mb-6">
@@ -87,18 +94,20 @@ export function Projects() {
                 </span>
                 <div className="flex flex-wrap gap-2">
                   {selectedProject.tech.map((t, idx) => (
-                    <button
+                    <motion.button
                       key={idx}
                       onClick={() => handleTechClick(t)}
                       className="px-2 py-0.5 text-xs bg-surface-light border border-border rounded text-text-secondary font-mono hover:border-accent hover:text-text-primary cursor-pointer transition-colors"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                     >
                       {t}
-                    </button>
+                    </motion.button>
                   ))}
                 </div>
               </div>
 
-              {/* Action buttons */}
+              {/* Action buttons - no arrows */}
               <div className="flex gap-2 pt-4 border-t border-border">
                 <Button
                   href={selectedProject.github}
@@ -106,7 +115,7 @@ export function Projects() {
                   external
                   className="text-xs px-3 py-1.5"
                 >
-                  GitHub →
+                  GitHub
                 </Button>
                 <Button
                   href={selectedProject.live}
@@ -114,7 +123,7 @@ export function Projects() {
                   external
                   className="text-xs px-3 py-1.5"
                 >
-                  Demo →
+                  Live Demo
                 </Button>
               </div>
             </div>

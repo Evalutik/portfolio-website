@@ -42,8 +42,11 @@ export function FileTree({ folders, selectedId, onSelect }: FileTreeProps) {
                 <span className="text-text-secondary">workspace</span>
             </div>
 
-            {/* Root path */}
-            <div className="text-[11px] text-text-muted mb-2 flex items-center gap-1">
+            {/* Root path - not navigable */}
+            <div
+                className="text-[11px] text-text-muted mb-2 flex items-center gap-1 cursor-not-allowed"
+                title="Cannot navigate above this directory"
+            >
                 <span className="text-accent">~</span>
                 <span>/</span>
                 <span>src</span>
@@ -89,7 +92,6 @@ export function FileTree({ folders, selectedId, onSelect }: FileTreeProps) {
                                         animate={{ height: 'auto', opacity: 1 }}
                                         exit={{ height: 0, opacity: 0 }}
                                         transition={{ duration: 0.15 }}
-                                        className="overflow-hidden"
                                     >
                                         {/* Container with vertical line from folder icon */}
                                         <div className="relative ml-[7px] pl-5">
@@ -148,36 +150,69 @@ function FileItem({ project, isSelected, onSelect }: FileItemProps) {
                 <span className="truncate text-[13px]">{project.fileName}</span>
             </button>
 
-            {/* Properties tooltip on hover */}
+            {/* Properties tooltip on hover - overlaps tree at 2/3 width */}
             <AnimatePresence>
-                {showTooltip && !isSelected && (
+                {showTooltip && (
                     <motion.div
-                        initial={{ opacity: 0, x: -5 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -5 }}
-                        transition={{ duration: 0.15 }}
-                        className="absolute left-full top-0 ml-3 z-20 w-56 p-3 bg-surface/95 backdrop-blur-md border border-border rounded-lg shadow-xl"
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 5 }}
+                        transition={{ duration: 0.15, delay: 0.1 }}
+                        className="absolute left-[120px] top-1/2 -translate-y-1/2 z-50 w-60 p-3 bg-surface/95 backdrop-blur-md border border-border rounded-lg shadow-xl"
+                        style={{ pointerEvents: 'none' }}
                     >
-                        <div className="text-[10px] text-text-muted uppercase tracking-widest mb-1.5 font-mono">
-                            properties
+                        <div className="text-[11px] font-medium text-text-primary mb-1">
+                            {project.title}
                         </div>
-                        <div className="text-xs text-text-secondary leading-relaxed mb-2.5">
+                        <div className="text-xs text-text-muted leading-relaxed mb-3 hyphens-auto" style={{ wordBreak: 'break-word' }}>
                             {project.summary}
                         </div>
-                        <div className="flex flex-wrap gap-1">
-                            {project.tech.slice(0, 3).map(t => (
-                                <span
-                                    key={t}
-                                    className="px-1.5 py-0.5 text-[10px] bg-surface-light border border-border rounded text-text-muted font-mono"
-                                >
-                                    {t}
-                                </span>
-                            ))}
-                            {project.tech.length > 3 && (
-                                <span className="px-1.5 py-0.5 text-[10px] text-text-muted">
-                                    +{project.tech.length - 3}
-                                </span>
-                            )}
+                        <div className="flex items-center gap-2 overflow-hidden">
+                            {(() => {
+                                // Calculate how many badges fit
+                                // Available width: ~200px (w-60 minus padding)
+                                // Each char ~6px, padding ~20px per badge, gap 8px, +X takes ~30px
+                                const availableWidth = 200
+                                const counterWidth = 30
+                                const gap = 8
+                                let usedWidth = 0
+                                let visibleCount = 0
+
+                                for (let i = 0; i < project.tech.length; i++) {
+                                    const badgeWidth = project.tech[i].length * 6 + 20 // chars + padding
+                                    const needsCounter = i < project.tech.length - 1
+                                    const spaceNeeded = badgeWidth + (visibleCount > 0 ? gap : 0) + (needsCounter ? counterWidth : 0)
+
+                                    if (usedWidth + spaceNeeded <= availableWidth) {
+                                        usedWidth += badgeWidth + (visibleCount > 0 ? gap : 0)
+                                        visibleCount++
+                                    } else {
+                                        break
+                                    }
+                                }
+
+                                // Ensure at least 1 badge shows
+                                visibleCount = Math.max(1, visibleCount)
+                                const remaining = project.tech.length - visibleCount
+
+                                return (
+                                    <>
+                                        {project.tech.slice(0, visibleCount).map(t => (
+                                            <span
+                                                key={t}
+                                                className="px-2 py-0.5 text-xs bg-surface-light border border-border rounded text-text-secondary font-mono whitespace-nowrap flex-shrink-0"
+                                            >
+                                                {t}
+                                            </span>
+                                        ))}
+                                        {remaining > 0 && (
+                                            <span className="text-xs text-text-muted whitespace-nowrap flex-shrink-0">
+                                                +{remaining}
+                                            </span>
+                                        )}
+                                    </>
+                                )
+                            })()}
                         </div>
                     </motion.div>
                 )}
