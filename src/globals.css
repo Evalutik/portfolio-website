@@ -34,16 +34,14 @@ body {
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
 }
 
-/* Text selection - TEXT_SECONDARY background with black text */
+/* Text selection - white background with black text */
 ::selection {
-  background-color: #a1a1aa;
-  /* TEXT_SECONDARY */
+  background-color: white;
   color: black;
 }
 
 ::-moz-selection {
-  background-color: #a1a1aa;
-  /* TEXT_SECONDARY */
+  background-color: white;
   color: black;
 }
 

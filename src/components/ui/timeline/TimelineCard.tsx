@@ -66,6 +66,8 @@ export function TimelineCard({
 
     const showFinal = isAnimating && isVisible
     const translateX = showFinal ? finalX : startX
+    // Blur effect: start blurred, become clear on appearance
+    const blurAmount = showFinal ? 0 : 8
 
     return (
         <div
@@ -73,6 +75,7 @@ export function TimelineCard({
             style={{
                 transform: `translate(-50%, -50%) translateX(${translateX}px) scale(${showFinal ? 1 : 0.9})`,
                 opacity: isAnimating ? Math.max(0, Math.min(1, opacity)) : 0,
+                filter: `blur(${blurAmount}px)`,
                 transition: isAnimating ? 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)' : 'none',
                 pointerEvents: isVisible ? 'auto' : 'none',
                 visibility: opacity > 0.05 ? 'visible' : 'hidden',
@@ -89,26 +92,19 @@ export function TimelineCard({
                     <div className="p-5">
                         <h3 className="text-lg font-semibold text-text-primary mb-1">
                             {title}
-                            <span className="inline-block ml-2 px-2 py-0.5 text-[10px] font-mono rounded-full bg-surface-light text-text-muted border border-border-light">
+                            <span className="align-middle ml-2 px-2 py-0.5 text-[12px] font-mono rounded-full bg-surface-light/50 text-text-muted border border-border-light">
                                 {year}
                             </span>
                         </h3>
 
                         <p className="text-sm text-accent mb-3">{subtitle}</p>
 
-                        <div
-                            className="overflow-hidden transition-all duration-500 ease-out"
-                            style={{ maxHeight: isExpanded ? '500px' : '80px' }}
-                        >
+                        <div className="transition-all duration-500 ease-out">
                             {content.map((paragraph, index) => (
                                 <p
                                     key={index}
-                                    className="text-sm text-text-secondary leading-relaxed mb-3 last:mb-0"
-                                    style={{
-                                        opacity: index === 0 || isExpanded ? 1 : 0,
-                                        transition: 'opacity 0.3s ease-out',
-                                        transitionDelay: isExpanded ? `${index * 100}ms` : '0ms',
-                                    }}
+                                    className={`text-sm text-text-secondary leading-relaxed mb-3 last:mb-0 ${!isExpanded && index === 0 ? 'line-clamp-3' : ''
+                                        } ${!isExpanded && index > 0 ? 'hidden' : ''}`}
                                 >
                                     {paragraph}
                                 </p>
