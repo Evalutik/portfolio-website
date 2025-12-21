@@ -250,7 +250,6 @@ export function EducationTimeline() {
                             <TimelineCard
                                 {...educationData[currentState.activeMarker]}
                                 isVisible={currentState.cardVisible}
-                                cardProgress={0}
                                 opacity={currentState.cardOpacity}
                             />
                         )}

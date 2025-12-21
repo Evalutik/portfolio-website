@@ -133,7 +133,6 @@ export function MobileEducationTimeline({ educationData }: MobileTimelineProps) 
                             key={item.id}
                             {...item}
                             isVisible={opacity > 0.5}
-                            cardProgress={0}
                             opacity={opacity}
                         />
                     )
