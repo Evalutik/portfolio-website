@@ -66,7 +66,7 @@ interface GraphData {
     links: GraphLink[]
 }
 
-// Consistent styling
+// Panel styling - similar to .card but with rounded-lg for smaller elements
 const panelClass = "bg-surface/80 backdrop-blur-md border border-border rounded-lg"
 
 // Zoom levels

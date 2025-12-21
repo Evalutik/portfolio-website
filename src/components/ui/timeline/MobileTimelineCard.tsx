@@ -1,7 +1,5 @@
 'use client'
 
-import { GlowCard } from '@/components/ui/common/GlowCard'
-
 interface MobileTimelineCardProps {
     id: number
     title: string
@@ -43,36 +41,29 @@ export function MobileTimelineCard({
                 visibility: opacity > 0.05 ? 'visible' : 'hidden',
             }}
         >
-            <div
-                className="rounded-xl overflow-hidden"
-                style={{
-                    backdropFilter: 'blur(12px)',
-                    WebkitBackdropFilter: 'blur(12px)',
-                }}
-            >
-                <GlowCard>
-                    <div className="p-4">
-                        {/* Year badge */}
-                        <div className="inline-block px-3 py-1 mb-2 text-xs font-mono rounded-full bg-accent/10 text-accent border border-accent/20">
-                            {year}
-                        </div>
-
-                        {/* Title */}
-                        <h3 className="text-base font-semibold text-text-primary mb-1">
-                            {title}
-                        </h3>
-
-                        {/* Subtitle */}
-                        <p className="text-sm text-accent mb-2">
-                            {subtitle}
-                        </p>
-
-                        {/* Description */}
-                        <p className="text-xs text-text-secondary leading-relaxed">
-                            {description}
-                        </p>
+            {/* Using .card class directly from globals.css */}
+            <div className="card">
+                <div className="p-4">
+                    {/* Year badge */}
+                    <div className="inline-block px-3 py-1 mb-2 text-xs font-mono rounded-full bg-accent/10 text-accent border border-accent/20">
+                        {year}
                     </div>
-                </GlowCard>
+
+                    {/* Title */}
+                    <h3 className="text-base font-semibold text-text-primary mb-1">
+                        {title}
+                    </h3>
+
+                    {/* Subtitle */}
+                    <p className="text-sm text-accent mb-2">
+                        {subtitle}
+                    </p>
+
+                    {/* Description */}
+                    <p className="text-xs text-text-secondary leading-relaxed">
+                        {description}
+                    </p>
+                </div>
             </div>
         </div>
     )

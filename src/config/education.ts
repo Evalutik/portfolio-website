@@ -34,6 +34,7 @@ export const educationData: EducationItem[] = [
         year: '2017 - 2019',
         content: [
             'College provided a structured environment to formalize my self-taught knowledge. I dove deep into fundamental computer science concepts including data structures, algorithms, and discrete mathematics.',
+            'Beyond the curriculum, I participated in coding competitions and collaborated on team projects that taught me the importance of clean code and effective communication in software development.',
             'Beyond the curriculum, I participated in coding competitions and collaborated on team projects that taught me the importance of clean code and effective communication in software development.'
         ],
         position: 'right',

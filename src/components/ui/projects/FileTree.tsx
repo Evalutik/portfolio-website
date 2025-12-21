@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronRight, FileText, FolderOpen, Folder } from 'lucide-react'
 import { FolderConfig, ProjectConfig } from '@/config/projects'
@@ -36,7 +36,7 @@ export function FileTree({ folders, selectedId, onSelect }: FileTreeProps) {
     }
 
     return (
-        <div className="font-mono text-sm select-none">
+        <div className="font-mono text-sm select-none max-w-[224px]">
             {/* Tree header */}
             <div className="flex items-center gap-1.5 text-[11px] text-text-muted uppercase tracking-wide mb-3 pb-2 border-b border-border/50">
                 <span className="text-text-secondary">workspace</span>
@@ -134,13 +134,38 @@ interface FileItemProps {
 
 function FileItem({ project, isSelected, onSelect }: FileItemProps) {
     const [showTooltip, setShowTooltip] = useState(false)
+    const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+    const handleMouseEnter = () => {
+        // 2 second delay before showing tooltip
+        hoverTimeoutRef.current = setTimeout(() => {
+            setShowTooltip(true)
+        }, 2000)
+    }
+
+    const handleMouseLeave = () => {
+        if (hoverTimeoutRef.current) {
+            clearTimeout(hoverTimeoutRef.current)
+            hoverTimeoutRef.current = null
+        }
+        setShowTooltip(false)
+    }
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            if (hoverTimeoutRef.current) {
+                clearTimeout(hoverTimeoutRef.current)
+            }
+        }
+    }, [])
 
     return (
         <div className="relative">
             <button
                 onClick={() => onSelect(project)}
-                onMouseEnter={() => setShowTooltip(true)}
-                onMouseLeave={() => setShowTooltip(false)}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
                 className={`w-full flex items-center gap-2 px-2 py-1 rounded text-left transition-all duration-150 ${isSelected
                     ? 'bg-accent/5 backdrop-blur-sm border border-accent/30 text-accent'
                     : 'border border-transparent text-text-muted hover:text-text-primary'
@@ -157,7 +182,7 @@ function FileItem({ project, isSelected, onSelect }: FileItemProps) {
                         initial={{ opacity: 0, y: 5 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 5 }}
-                        transition={{ duration: 0.15, delay: 0.1 }}
+                        transition={{ duration: 0.15 }}
                         className="absolute left-[120px] top-1/2 -translate-y-1/2 z-50 w-60 p-3 bg-surface/95 backdrop-blur-md border border-border rounded-lg shadow-xl"
                         style={{ pointerEvents: 'none' }}
                     >
