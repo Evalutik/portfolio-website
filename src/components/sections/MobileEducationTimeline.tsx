@@ -5,18 +5,10 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { TimelineCard } from '@/components/ui/timeline/TimelineCard'
 import { PRIMARY, BORDER_LIGHT, TEXT_MUTED, SURFACE } from '@/config/colors'
+import { EducationItem } from '@/config/education'
 
 if (typeof window !== 'undefined') {
     gsap.registerPlugin(ScrollTrigger)
-}
-
-interface EducationItem {
-    id: number
-    title: string
-    subtitle: string
-    year: string
-    description: string
-    position: 'left' | 'right'
 }
 
 interface MobileTimelineProps {

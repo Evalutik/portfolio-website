@@ -7,53 +7,12 @@ import { SectionHeading } from '@/components/ui/common/SectionHeading'
 import { TimelineCard } from '@/components/ui/timeline/TimelineCard'
 import { MobileEducationTimeline } from './MobileEducationTimeline'
 import { PRIMARY, BORDER_LIGHT, TEXT_MUTED, SURFACE } from '@/config/colors'
+import { educationData } from '@/config/education'
 
 if (typeof window !== 'undefined') {
     gsap.registerPlugin(ScrollTrigger)
 }
 
-const educationData = [
-    {
-        id: 1,
-        title: 'How It All Started',
-        subtitle: 'The Beginning',
-        year: '2015',
-        description: 'First steps into the world of programming and technology.',
-        position: 'left' as const,
-    },
-    {
-        id: 2,
-        title: 'College',
-        subtitle: 'Foundation Years',
-        year: '2017 - 2019',
-        description: 'Built strong fundamentals in computer science and mathematics.',
-        position: 'right' as const,
-    },
-    {
-        id: 3,
-        title: 'BSc Computer Science',
-        subtitle: 'University Degree',
-        year: '2019 - 2022',
-        description: 'Deep dive into algorithms, data structures, and software engineering.',
-        position: 'left' as const,
-    },
-    {
-        id: 4,
-        title: 'Honours Mathematics',
-        subtitle: 'Advanced Studies',
-        year: '2022 - 2023',
-        description: 'Advanced mathematical foundations for machine learning.',
-        position: 'right' as const,
-    },
-    {
-        id: 5,
-        title: "What's Next?",
-        subtitle: 'The Journey Continues',
-        year: '2024+',
-        description: 'Open to exciting opportunities and collaborations.',
-        position: 'left' as const,
-    },
-]
 
 const VIEWPORT_HEIGHT = 500
 const PATH_D = `
@@ -157,14 +116,14 @@ export function EducationTimeline() {
             const viewportOffset = 0
 
             let cardOpacity = 0
-            if (segmentProgress > 0.85) {
-                cardOpacity = (segmentProgress - 0.85) / 0.15
+            if (segmentProgress > 0.95) {
+                cardOpacity = (segmentProgress - 0.95) / 0.05
             }
 
             return {
                 drawProgress,
                 viewportOffset,
-                activeMarker: segmentProgress > 0.85 ? 0 : -1,
+                activeMarker: segmentProgress > 0.95 ? 0 : -1,
                 cardOpacity,
                 cardVisible: cardOpacity > 0.05,
             }
@@ -254,7 +213,10 @@ export function EducationTimeline() {
     return (
         <section ref={sectionRef} id="education" className="relative">
             <div className="py-8 px-4 max-w-3xl mx-auto">
-                <SectionHeading title="Education" />
+                <SectionHeading
+                    title="Education"
+                    subtitle="A glimpse into my journey and the milestones that shaped who I am today."
+                />
             </div>
 
             {isMobile ? (
