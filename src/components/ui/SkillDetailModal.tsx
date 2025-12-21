@@ -189,7 +189,7 @@ export function SkillDetailModal({ skill, onClose, onSkillChange }: SkillDetailM
                       {skill.useCases.map((useCase, index) => (
                         <motion.span
                           key={useCase}
-                          className="px-2 py-1 text-xs bg-surface border border-border rounded text-text-muted"
+                          className="px-2 py-0.5 text-xs bg-surface-light border border-border rounded text-text-secondary font-mono"
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           transition={{ delay: 0.35 + index * 0.03, duration: 0.2 }}
@@ -216,7 +216,7 @@ export function SkillDetailModal({ skill, onClose, onSkillChange }: SkillDetailM
                         <motion.span
                           key={related}
                           onClick={() => handleRelatedClick(related)}
-                          className="px-2 py-1 text-xs bg-surface border border-border rounded text-text-muted hover:border-accent hover:text-text-secondary cursor-pointer transition-colors"
+                          className="px-2 py-0.5 text-xs bg-surface-light border border-border rounded text-text-secondary font-mono hover:border-accent hover:text-text-primary cursor-pointer transition-colors"
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           transition={{ delay: 0.45 + index * 0.03, duration: 0.2 }}

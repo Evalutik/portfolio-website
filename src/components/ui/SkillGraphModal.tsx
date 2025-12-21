@@ -835,7 +835,7 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                                                         {cardUseCases.map((useCase) => (
                                                             <span
                                                                 key={useCase}
-                                                                className="px-1.5 py-0.5 text-[9px] bg-surface border border-border rounded text-text-muted"
+                                                                className="px-1.5 py-0.5 text-[9px] bg-surface-light border border-border rounded text-text-secondary font-mono"
                                                             >
                                                                 {useCase}
                                                             </span>
@@ -853,7 +853,7 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                                                         {cardRelated.slice(0, 6).map((related) => (
                                                             <span
                                                                 key={related}
-                                                                className="px-1.5 py-0.5 text-[9px] bg-surface border border-border rounded text-text-muted hover:border-accent hover:text-text-secondary cursor-pointer transition-colors"
+                                                                className="px-1.5 py-0.5 text-[9px] bg-surface-light border border-border rounded text-text-secondary font-mono hover:border-accent hover:text-text-primary cursor-pointer transition-colors"
                                                                 onClick={() => {
                                                                     const skill = getSkillByTitle(related)
                                                                     if (skill) {

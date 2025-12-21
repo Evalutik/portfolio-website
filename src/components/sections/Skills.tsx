@@ -50,13 +50,20 @@ export function Skills() {
       <div className="max-w-3xl mx-auto px-4 mb-8">
         <SectionHeading title="Skills & Technologies" />
 
-        {/* Explore button styled like About's subtitle */}
-        <button
-          onClick={() => setShowGraph(true)}
-          className="group -mt-10 mb-8 text-text-muted text-sm hover:text-accent transition-colors flex items-center gap-2"
-        >
-          <span>Explore the Skill Galaxy</span>
-        </button>
+        {/* Explore the Skill Galaxy - inline text with button */}
+        <div className="-mt-10 mb-8 flex items-center gap-1.5 text-text-muted text-sm">
+          {/* "Explore the" text */}
+          <span>Visit the</span>
+
+          {/* "Skill Galaxy" button - styled like Close button in galaxy view */}
+          <button
+            onClick={() => setShowGraph(true)}
+            className="bg-surface/80 backdrop-blur-md border border-border rounded-lg px-3 py-1.5 flex items-center hover:bg-surface-light hover:border-border-light transition-all duration-200 btn-secondary-shine"
+          >
+            <span className="text-xs text-text-primary">Skill Galaxy</span>
+          </button>
+          <span>to explore all skills!</span>
+        </div>
       </div>
 
       <SkillsMarquee3D rows={rows} />
