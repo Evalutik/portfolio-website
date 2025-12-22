@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { SectionHeading } from '@/components/ui/common/SectionHeading'
 import { experienceData, ExperienceItem } from '@/config/experience'
 
-type TerminalState = 'initial' | 'loading-list' | 'list' | 'loading-detail' | 'detail'
+type TerminalState = 'initial' | 'loading-list' | 'list' | 'loading-detail' | 'detail' | 'loading-back' | 'loading-exit'
 
 interface HistoryEntry {
     type: 'command' | 'output' | 'list-item' | 'description' | 'empty'
@@ -37,6 +37,10 @@ export function Experience() {
         })
     }
 
+    const clearHistory = () => {
+        setHistory([])
+    }
+
     // Spinner animation
     useEffect(() => {
         if (state === 'loading-list' || state === 'loading-detail') {
@@ -51,6 +55,7 @@ export function Experience() {
     useEffect(() => {
         if (state === 'loading-list') {
             const timer = setTimeout(() => {
+                setSelectedIndex(0)
                 setState('list')
             }, 2000)
             return () => clearTimeout(timer)
@@ -59,6 +64,20 @@ export function Experience() {
             const timer = setTimeout(() => {
                 setState('detail')
             }, 1000)
+            return () => clearTimeout(timer)
+        }
+        if (state === 'loading-back') {
+            const timer = setTimeout(() => {
+                setSelectedIndex(0)
+                setState('list')
+            }, 300)
+            return () => clearTimeout(timer)
+        }
+        if (state === 'loading-exit') {
+            const timer = setTimeout(() => {
+                clearHistory()
+                setState('initial')
+            }, 300)
             return () => clearTimeout(timer)
         }
     }, [state])
@@ -76,6 +95,37 @@ export function Experience() {
         return () => clearInterval(interval)
     }, [])
 
+    // Native wheel event to capture scroll inside terminal only when there's room to scroll
+    useEffect(() => {
+        const el = contentRef.current
+        if (!el) return
+
+        const handleWheel = (e: WheelEvent) => {
+            const { scrollTop, scrollHeight, clientHeight } = el
+            const isAtTop = scrollTop <= 0
+            const isAtBottom = scrollTop + clientHeight >= scrollHeight - 1 // 1px tolerance
+            const isScrollingUp = e.deltaY < 0
+            const isScrollingDown = e.deltaY > 0
+
+            // Only capture scroll if terminal can scroll in that direction
+            const canScrollInDirection =
+                (isScrollingUp && !isAtTop) ||
+                (isScrollingDown && !isAtBottom)
+
+            if (canScrollInDirection) {
+                e.preventDefault()
+                e.stopPropagation()
+                el.scrollTop += e.deltaY
+            }
+            // Otherwise, let page scroll normally
+        }
+
+        el.addEventListener('wheel', handleWheel, { passive: false })
+        return () => el.removeEventListener('wheel', handleWheel)
+    }, [])
+
+    const exitIndex = experienceData.length
+
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
         if (state === 'initial') {
             if (e.key === 'Enter') {
@@ -88,25 +138,31 @@ export function Experience() {
         } else if (state === 'list') {
             if (e.key === 'ArrowDown') {
                 e.preventDefault()
-                setSelectedIndex(prev => Math.min(prev + 1, experienceData.length - 1))
+                setSelectedIndex(prev => Math.min(prev + 1, exitIndex))
             } else if (e.key === 'ArrowUp') {
                 e.preventDefault()
                 setSelectedIndex(prev => Math.max(prev - 1, 0))
             } else if (e.key === 'Enter') {
                 e.preventDefault()
-                const exp = experienceData[selectedIndex]
-                setSelectedExperience(exp)
-                // Only add command to history, keep list live to avoid visual jump
-                addToHistory([
-                    { type: 'command', content: `experience --show "${exp.company}"` },
-                ])
-                setState('loading-detail')
+                if (selectedIndex === exitIndex) {
+                    addToHistory([
+                        { type: 'command', content: 'exit' },
+                    ])
+                    setSelectedIndex(0)
+                    setState('loading-exit')
+                } else {
+                    const exp = experienceData[selectedIndex]
+                    setSelectedExperience(exp)
+                    addToHistory([
+                        { type: 'command', content: `experience --show "${exp.company}"` },
+                    ])
+                    setState('loading-detail')
+                }
             }
         } else if (state === 'detail') {
             if (e.key === 'Enter' || e.key === 'Backspace' || e.key === 'Escape') {
                 e.preventDefault()
                 if (selectedExperience) {
-                    // Add detail content and cd .. to history (no results - list view shows it)
                     addToHistory([
                         { type: 'output', content: `${selectedExperience.role} @ ${selectedExperience.company}` },
                         { type: 'empty', content: '' },
@@ -118,11 +174,11 @@ export function Experience() {
                         { type: 'command', content: 'cd ..' },
                     ])
                 }
-                setState('list')
                 setSelectedExperience(null)
+                setState('loading-back')
             }
         }
-    }, [state, selectedIndex, selectedExperience])
+    }, [state, selectedIndex, selectedExperience, exitIndex])
 
     useEffect(() => {
         const terminal = terminalRef.current
@@ -138,14 +194,21 @@ export function Experience() {
 
     const handleItemClick = (index: number) => {
         if (state === 'list') {
-            const exp = experienceData[index]
-            setSelectedIndex(index)
-            setSelectedExperience(exp)
-            // Only add command to history, keep list live to avoid visual jump
-            addToHistory([
-                { type: 'command', content: `experience --show "${exp.company}"` },
-            ])
-            setState('loading-detail')
+            if (index === exitIndex) {
+                addToHistory([
+                    { type: 'command', content: 'exit' },
+                ])
+                setSelectedIndex(0)
+                setState('loading-exit')
+            } else {
+                const exp = experienceData[index]
+                setSelectedIndex(index)
+                setSelectedExperience(exp)
+                addToHistory([
+                    { type: 'command', content: `experience --show "${exp.company}"` },
+                ])
+                setState('loading-detail')
+            }
         }
     }
 
@@ -162,8 +225,8 @@ export function Experience() {
                 { type: 'command', content: 'cd ..' },
             ])
         }
-        setState('list')
         setSelectedExperience(null)
+        setState('loading-back')
     }
 
     const handleInitialClick = () => {
@@ -243,12 +306,12 @@ export function Experience() {
                         </span>
                     </div>
 
-                    {/* Terminal Body - flex container for scroll area + footer */}
+                    {/* Terminal Body */}
                     <div className="flex flex-col h-[400px]">
                         {/* Scrollable content area */}
                         <div
                             ref={contentRef}
-                            className="terminal-scroll flex-1 px-3 py-2 font-mono text-sm overflow-y-scroll"
+                            className="terminal-scroll flex-1 px-3 py-2 font-mono text-sm overflow-y-auto"
                         >
                             <style jsx global>{`
                               .terminal-scroll::-webkit-scrollbar {
@@ -257,6 +320,11 @@ export function Experience() {
                               .terminal-scroll {
                                 scrollbar-width: none;
                                 -ms-overflow-style: none;
+                              }
+                              .terminal-scroll::selection,
+                              .terminal-scroll *::selection {
+                                background: rgba(139, 92, 246, 0.4);
+                                color: white;
                               }
                             `}</style>
 
@@ -272,7 +340,7 @@ export function Experience() {
                                         <span className="text-accent w-4 flex-shrink-0">$</span>
                                         <span className="text-text-primary">experience --list</span>
                                         <span className={`w-2 h-4 bg-text-primary ml-1 ${showCursor ? 'opacity-100' : 'opacity-0'}`} />
-                                        <span className="text-text-secondary/60 ml-3">press ⏎</span>
+                                        <span className="text-text-secondary/60 ml-3">press ⏎ to run</span>
                                     </div>
                                 </div>
                             )}
@@ -293,12 +361,18 @@ export function Experience() {
                                 </div>
                             )}
 
+                            {(state === 'loading-back' || state === 'loading-exit') && (
+                                <div className="h-4" />
+                            )}
+
                             {state === 'list' && (
                                 <div>
                                     {/* Results count */}
                                     <div className="flex mb-1">
                                         <span className="w-4 flex-shrink-0" />
-                                        <span className="text-text-secondary/70">{experienceData.length} result(s)</span>
+                                        <span className="text-text-secondary/70">
+                                            Showing all positions. {experienceData.length} result(s):
+                                        </span>
                                     </div>
                                     <div className="space-y-0.5">
                                         {experienceData.map((exp, index) => (
@@ -319,6 +393,19 @@ export function Experience() {
                                                 <span className="ml-auto text-text-secondary/60">{exp.period}</span>
                                             </div>
                                         ))}
+                                        {/* Exit option */}
+                                        <div
+                                            onClick={() => handleItemClick(exitIndex)}
+                                            className={`flex items-center cursor-pointer font-mono -mx-3 px-3 ${selectedIndex === exitIndex
+                                                ? 'text-text-primary bg-primary/25'
+                                                : 'text-text-secondary hover:text-text-primary hover:bg-surface-light/30'
+                                                }`}
+                                        >
+                                            <span className={`w-4 flex-shrink-0 ${selectedIndex === exitIndex ? 'text-accent' : 'text-transparent'}`}>
+                                                {'>'}
+                                            </span>
+                                            <span>exit</span>
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -356,20 +443,42 @@ export function Experience() {
                                         <span className="text-accent w-4 flex-shrink-0">$</span>
                                         <span className="text-text-primary">cd ..</span>
                                         <span className={`w-2 h-4 bg-text-primary ml-1 ${showCursor ? 'opacity-100' : 'opacity-0'}`} />
-                                        <span className="text-text-secondary/60 ml-3">press ⏎ to go back</span>
+                                        <span className="text-text-secondary/60 ml-3">press ⏎ to run</span>
                                     </div>
                                 </div>
                             )}
                         </div>
 
-                        {/* Fixed footer - only show in list state */}
-                        {state === 'list' && (
-                            <div className="px-3 py-2 text-text-secondary/50 text-[10px] font-mono">
-                                ↑↓ navigate • ⏎ select
-                            </div>
-                        )}
+                        {/* Fixed footer - show in all interactive states */}
+                        <div className="px-3 py-2 text-text-secondary/50 text-[10px] font-mono">
+                            {state === 'initial' && '⏎ run command • mouse supported'}
+                            {state === 'list' && '↑↓ navigate • ⏎ select • mouse supported'}
+                            {state === 'detail' && '⏎ go back • mouse supported'}
+                            {(state === 'loading-list' || state === 'loading-detail' || state === 'loading-back' || state === 'loading-exit') && 'loading...'}
+                        </div>
                     </div>
                 </div>
+            </motion.div>
+
+            {/* Guide for users - styled like About section */}
+            <motion.div
+                className="mt-8 space-y-4 text-sm text-text-secondary leading-relaxed"
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: 0.2 }}
+            >
+                <p>
+                    Explore my professional journey through this interactive terminal interface.
+                    Navigate using the arrow keys <span className="font-mono text-text-primary">↑</span> <span className="font-mono text-text-primary">↓</span> to
+                    move between positions, then press <span className="font-mono text-text-primary">⏎</span> to view details about each role.
+                    You can also click directly on any item with your mouse.
+                </p>
+                <p>
+                    Select a position to see my responsibilities, achievements, and the impact I made.
+                    When you&apos;re done exploring a role, press <span className="font-mono text-text-primary">⏎</span> again to return to the list,
+                    or select &quot;exit&quot; to reset the terminal and start fresh.
+                </p>
             </motion.div>
         </section>
     )
