@@ -33,6 +33,7 @@ interface SkillGraphModalProps {
     isOpen: boolean
     onClose: () => void
     onSkillClick: (skill: SkillConfig) => void
+    preloadMode?: boolean // When true, renders graph hidden for preloading without UI effects
 }
 
 // CATEGORY_COLORS imported from '@/config/skills'
@@ -87,7 +88,7 @@ function getShortDescription(skill: SkillConfig): string {
 /**
  * SkillGraphModal
  */
-export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphModalProps) {
+export function SkillGraphModal({ isOpen, onClose, onSkillClick, preloadMode = false }: SkillGraphModalProps) {
     const [searchQuery, setSearchQuery] = useState('')
     const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
     const [nodeVisibility, setNodeVisibility] = useState<Record<string, number>>({})
@@ -539,14 +540,17 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
             resetState()
             graphConfiguredRef.current = false
 
-            const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
-            document.body.style.overflow = 'hidden'
-            document.body.style.paddingRight = `${scrollbarWidth}px`
-            document.body.style.overscrollBehavior = 'none'
-            // Also hide on html element to prevent scrollbar during React re-renders
-            document.documentElement.style.overflow = 'hidden'
-            // Add class for other components to detect galaxy view
-            document.body.classList.add('galaxy-open')
+            // Skip body scroll lock in preload mode
+            if (!preloadMode) {
+                const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+                document.body.style.overflow = 'hidden'
+                document.body.style.paddingRight = `${scrollbarWidth}px`
+                document.body.style.overscrollBehavior = 'none'
+                // Also hide on html element to prevent scrollbar during React re-renders
+                document.documentElement.style.overflow = 'hidden'
+                // Add class for other components to detect galaxy view
+                document.body.classList.add('galaxy-open')
+            }
 
             updateDimensions()
             window.addEventListener('resize', updateDimensions)
@@ -586,16 +590,18 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
             setTimeout(configureGraph, 600)
 
             return () => {
-                document.body.style.overflow = ''
-                document.body.style.paddingRight = ''
-                document.body.style.overscrollBehavior = ''
-                document.documentElement.style.overflow = ''
-                document.body.classList.remove('galaxy-open')
+                if (!preloadMode) {
+                    document.body.style.overflow = ''
+                    document.body.style.paddingRight = ''
+                    document.body.style.overscrollBehavior = ''
+                    document.documentElement.style.overflow = ''
+                    document.body.classList.remove('galaxy-open')
+                }
                 window.removeEventListener('resize', updateDimensions)
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOpen])
+    }, [isOpen, preloadMode])
 
     // Key handler effect - separate to avoid resetting state
     useEffect(() => {
@@ -642,10 +648,16 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
         <AnimatePresence>
             {isOpen && (
                 <motion.div
-                    className="fixed inset-0 z-50 flex items-center justify-center touch-none"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 flex items-center justify-center touch-none"
+                    style={preloadMode ? {
+                        opacity: 0,
+                        visibility: 'hidden',
+                        zIndex: -9999,
+                        pointerEvents: 'none'
+                    } : { zIndex: 50 }}
+                    initial={preloadMode ? false : { opacity: 0 }}
+                    animate={preloadMode ? false : { opacity: 1 }}
+                    exit={preloadMode ? undefined : { opacity: 0 }}
                     transition={{ duration: 0.2 }}
                     onWheel={(e) => e.stopPropagation()}
                 >

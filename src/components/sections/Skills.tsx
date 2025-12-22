@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
+import { motion } from 'framer-motion'
 import { SectionHeading } from '@/components/ui/common/SectionHeading'
 import { SkillsMarquee3D } from '@/components/ui/skills/SkillsMarquee3D'
 import { SkillTag } from '@/components/ui/skills/SkillTag'
@@ -8,9 +9,38 @@ import { SkillDetailModal } from '@/components/ui/skills/SkillDetailModal'
 import { SkillGraphModal } from '@/components/ui/skills/SkillGraphModal'
 import { skillRows, getSkillByTitle, SkillConfig } from '@/config/skills'
 
+// Top expertise areas with proficiency levels
+const expertise = [
+  { label: 'Data Engineering', level: 95 },
+  { label: 'Python / SQL', level: 92 },
+  { label: 'Cloud Platforms', level: 88 },
+  { label: 'Machine Learning', level: 85 },
+  { label: 'System Design', level: 82 },
+]
+
 export function Skills() {
   const [selectedSkill, setSelectedSkill] = useState<SkillConfig | null>(null)
   const [showGraph, setShowGraph] = useState(false)
+  const [preloadGraph, setPreloadGraph] = useState(false)
+  const sectionRef = useRef<HTMLElement>(null)
+
+  // Preload graph when Skills section comes into view
+  useEffect(() => {
+    const section = sectionRef.current
+    if (!section) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !preloadGraph) {
+          setPreloadGraph(true)
+        }
+      },
+      { threshold: 0.1 } // Trigger when 10% of section is visible
+    )
+
+    observer.observe(section)
+    return () => observer.disconnect()
+  }, [preloadGraph])
 
   const handleSkillClick = (title: string) => {
     const skillData = getSkillByTitle(title)
@@ -46,7 +76,7 @@ export function Skills() {
   }))
 
   return (
-    <section id="skills" className="py-16 overflow-visible">
+    <section id="skills" className="py-16 overflow-visible" ref={sectionRef}>
       <div className="max-w-3xl mx-auto px-4 mb-8">
         <SectionHeading title="Skills & Technologies" />
 
@@ -68,6 +98,38 @@ export function Skills() {
 
       <SkillsMarquee3D rows={rows} />
 
+      {/* Expertise - Most experienced areas */}
+      <div className="max-w-3xl mx-auto px-4 mt-32">
+        <span className="text-[10px] font-mono text-text-muted uppercase tracking-widest block mb-4">
+          {'// '}most experienced areas
+        </span>
+        <motion.div
+          className="space-y-4"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4 }}
+        >
+          {expertise.map((item, index) => (
+            <div key={index} className="group">
+              <div className="flex justify-between items-center mb-1.5">
+                <span className="text-text-secondary text-sm">{item.label}</span>
+                <span className="text-text-muted text-xs font-mono">{item.level}%</span>
+              </div>
+              <div className="w-full bg-surface border border-border rounded h-1.5 overflow-hidden">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-primary-dark to-accent rounded"
+                  initial={{ width: 0 }}
+                  whileInView={{ width: `${item.level}%` }}
+                  transition={{ duration: 0.6, delay: index * 0.05, ease: 'easeOut' }}
+                  viewport={{ once: true }}
+                />
+              </div>
+            </div>
+          ))}
+        </motion.div>
+      </div>
+
       {/* Skill Detail Modal */}
       <SkillDetailModal
         skill={selectedSkill}
@@ -75,13 +137,15 @@ export function Skills() {
         onSkillChange={handleSkillChange}
       />
 
-      {/* Skill Graph Modal */}
-      <SkillGraphModal
-        isOpen={showGraph}
-        onClose={() => setShowGraph(false)}
-        onSkillClick={handleGraphSkillClick}
-      />
+      {/* Skill Graph Modal - single instance, preloads when section visible */}
+      {(preloadGraph || showGraph) && (
+        <SkillGraphModal
+          isOpen={preloadGraph || showGraph}
+          onClose={() => setShowGraph(false)}
+          onSkillClick={handleGraphSkillClick}
+          preloadMode={preloadGraph && !showGraph}
+        />
+      )}
     </section>
   )
 }
-

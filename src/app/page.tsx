@@ -4,7 +4,6 @@ import { Skills } from '@/components/sections/Skills'
 import { Projects } from '@/components/sections/Projects'
 import { Experience } from '@/components/sections/Experience'
 import { Education } from '@/components/sections/Education'
-import { Expertise } from '@/components/sections/Expertise'
 import { Contact } from '@/components/sections/Contact'
 import { Navigation } from '@/components/ui/Navigation'
 import { ParticlesBackground } from '@/components/ui/effects/ParticlesBackground'
@@ -29,13 +28,12 @@ export default function Home() {
       <Hero />
       <SectionDivider variant="spacer" />
       <About />
-      <div className="py-8" /> {/* Simple spacer before Skills */}
+      <div className="py-16" /> {/* Simple spacer before Skills */}
       <Skills />
-      <div className="py-8" /> {/* Simple spacer after Skills */}
+      <div className="py-16" /> {/* Simple spacer after Skills */}
       <Projects />
       <SectionDivider variant="wave" />
       <Education />
-      <Expertise />
       <Experience />
       <SectionDivider variant="code" />
       <Contact />

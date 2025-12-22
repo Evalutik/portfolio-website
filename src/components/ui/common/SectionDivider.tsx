@@ -41,12 +41,12 @@ export function SectionDivider({ variant = 'code' }: SectionDividerProps) {
 
   // spacer variant - just empty space, same height as dots
   if (variant === 'spacer') {
-    return <div className="py-8" />
+    return <div className="py-16" />
   }
 
   if (variant === 'code') {
     return (
-      <div ref={ref} className="relative py-8 overflow-hidden select-none pointer-events-none">
+      <div ref={ref} className="relative py-16 overflow-hidden select-none pointer-events-none">
         <motion.div
           className="flex justify-center gap-4 text-text-muted/20 font-mono text-xs"
           style={{ x, opacity }}
@@ -65,7 +65,7 @@ export function SectionDivider({ variant = 'code' }: SectionDividerProps) {
     // Use fixed heights to avoid hydration mismatch
     const heights = [24, 32, 18, 28, 22, 35, 20, 30, 25, 33, 19, 27, 23, 31, 21, 29, 26, 34, 20, 28, 24, 32, 18, 30, 22, 35, 25, 19, 27, 31]
     return (
-      <div ref={ref} className="relative py-8 overflow-hidden">
+      <div ref={ref} className="relative py-16 overflow-hidden">
         <motion.div
           className="flex justify-center gap-4"
           style={{ x: useTransform(scrollYProgress, [0, 1], [50, -50]), opacity }}
@@ -104,7 +104,7 @@ export function SectionDivider({ variant = 'code' }: SectionDividerProps) {
 
   // dots variant
   return (
-    <div ref={ref} className="relative py-8">
+    <div ref={ref} className="relative py-16">
       <motion.div
         className="flex justify-center gap-2"
         style={{ opacity }}

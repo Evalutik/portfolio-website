@@ -136,6 +136,6 @@ export function Projects() {
         skill={selectedSkill}
         onClose={() => setSelectedSkill(null)}
       />
-    </section>
+    </section >
   )
 }

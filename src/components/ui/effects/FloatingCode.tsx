@@ -148,7 +148,7 @@ function TypewriterCode({
         left: side === 'left' ? '2%' : 'auto',
         right: side === 'right' ? '2%' : 'auto',
         opacity,
-        zIndex: 0,
+        zIndex: -5,
         maxWidth: '200px',
       }}
     >
@@ -188,7 +188,7 @@ export function FloatingCode() {
     [])
 
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0, willChange: 'opacity, transform' }}>
+    <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ zIndex: -5, willChange: 'opacity, transform' }}>
       {snippetConfigs.map((snippet) => (
         <TypewriterCode
           key={snippet.id}
