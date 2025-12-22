@@ -11,12 +11,15 @@ import { SectionDivider } from '@/components/ui/common/SectionDivider'
 import { FloatingCode } from '@/components/ui/effects/FloatingCode'
 import { CursorGlow } from '@/components/ui/effects/CursorGlow'
 import { ParallaxGrid } from '@/components/ui/effects/ParallaxGrid'
+import { HeroPixelBlast } from '@/components/ui/effects/HeroPixelBlast'
 
 export default function Home() {
   return (
     <main className="relative min-h-screen">
       {/* Background effects - layered */}
       <ParallaxGrid />
+      {/* Pixel pattern for hero section */}
+      <HeroPixelBlast />
       <ParticlesBackground />
       <FloatingCode />
       <CursorGlow />

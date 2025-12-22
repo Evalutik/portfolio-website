@@ -11,6 +11,7 @@ coverage
 out
 *.trace
 *.time
+tsconfig.tsbuildinfo
 
 # Production
 build

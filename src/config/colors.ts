@@ -49,8 +49,9 @@ export const SKILL_WAVE = '#a78bfa'
 /** Toggle to enable/disable particles background */
 export const PARTICLES_ENABLED = true
 
-/** Particle colors - array of colors for the floating particles */
-export const PARTICLES_COLORS = ['#6366f1', '#8b5cf6', '#a78bfa']
+/** Particle colors - array of colors for the floating particles 
+export const PARTICLES_COLORS = ['#6366f1', '#8b5cf6', '#a78bfa'] **/
+export const PARTICLES_COLORS = ['#9a9aa4ff', '#6d6a73ff', '#ada4c5ff']
 
 /** Particle opacity - min and max opacity values (0-1) */
 export const PARTICLES_OPACITY_MIN = 0.1

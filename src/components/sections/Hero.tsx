@@ -25,68 +25,68 @@ export function Hero() {
   }
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center px-4 py-20 overflow-hidden">
-      {/* Background grid */}
-      <div className="absolute inset-0 bg-dots opacity-50" />
-
+    <section className="relative min-h-screen flex items-center py-20 overflow-hidden">
       {/* Subtle gradient orbs */}
       <div className="gradient-orb w-[600px] h-[600px] bg-primary/30 -top-[200px] -left-[200px]" />
       <div className="gradient-orb w-[500px] h-[500px] bg-accent/20 bottom-[10%] -right-[150px]" />
 
-      <motion.div
-        className="relative z-10 max-w-2xl text-center"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        {/* Badge */}
+      {/* Container with proper max-width matching site layout */}
+      <div className="max-w-3xl mx-auto px-4 w-full">
         <motion.div
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface border border-border text-xs text-text-secondary mb-6"
-          variants={itemVariants}
+          className="relative z-10 max-w-xl text-left"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-          Open to offers
+          {/* Badge */}
+          <motion.div
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface border border-border text-xs text-text-secondary mb-6"
+            variants={itemVariants}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            Open to offers
+          </motion.div>
+
+          {/* Name */}
+          <motion.h1
+            className="text-4xl md:text-5xl font-semibold mb-4 tracking-tight text-text-primary"
+            variants={itemVariants}
+          >
+            Andrei Fedyna
+          </motion.h1>
+
+          {/* Title */}
+          <motion.h2
+            className="text-lg md:text-xl text-text-secondary mb-6 font-normal"
+            variants={itemVariants}
+          >
+            <span className="text-gradient font-medium">Data Engineer</span>
+            {' '}&{' '}
+            <span className="text-gradient font-medium">AI Specialist</span>
+          </motion.h2>
+
+          {/* Tagline */}
+          <motion.p
+            className="text-base text-text-muted mb-10 max-w-lg mr-auto leading-relaxed"
+            variants={itemVariants}
+          >
+            Building data pipelines and intelligent systems that transform complex data into actionable insights.
+          </motion.p>
+
+          {/* CTA Buttons */}
+          <motion.div
+            className="flex flex-row gap-3 justify-start"
+            variants={itemVariants}
+          >
+            <Button href="#projects" variant="primary">
+              View Work
+            </Button>
+            <Button href="#contact" variant="secondary">
+              Contact
+            </Button>
+          </motion.div>
         </motion.div>
-
-        {/* Name */}
-        <motion.h1
-          className="text-4xl md:text-5xl font-semibold mb-4 tracking-tight text-text-primary"
-          variants={itemVariants}
-        >
-          Andrei Fedyna
-        </motion.h1>
-
-        {/* Title */}
-        <motion.h2
-          className="text-lg md:text-xl text-text-secondary mb-6 font-normal"
-          variants={itemVariants}
-        >
-          <span className="text-gradient font-medium">Data Engineer</span>
-          {' '}&{' '}
-          <span className="text-gradient font-medium">AI Specialist</span>
-        </motion.h2>
-
-        {/* Tagline */}
-        <motion.p
-          className="text-base text-text-muted mb-10 max-w-lg mx-auto leading-relaxed"
-          variants={itemVariants}
-        >
-          Building data pipelines and intelligent systems that transform complex data into actionable insights.
-        </motion.p>
-
-        {/* CTA Buttons */}
-        <motion.div
-          className="flex flex-row gap-3 justify-center"
-          variants={itemVariants}
-        >
-          <Button href="#projects" variant="primary">
-            View Work
-          </Button>
-          <Button href="#contact" variant="secondary">
-            Contact
-          </Button>
-        </motion.div>
-      </motion.div>
+      </div>
     </section>
   )
 }
