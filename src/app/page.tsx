@@ -8,7 +8,6 @@ import { Expertise } from '@/components/sections/Expertise'
 import { Contact } from '@/components/sections/Contact'
 import { Navigation } from '@/components/ui/Navigation'
 import { ParticlesBackground } from '@/components/ui/effects/ParticlesBackground'
-import { GlowingBlobs } from '@/components/ui/effects/GlowingBlobs'
 import { SectionDivider } from '@/components/ui/common/SectionDivider'
 import { FloatingCode } from '@/components/ui/effects/FloatingCode'
 import { CursorGlow } from '@/components/ui/effects/CursorGlow'
@@ -19,7 +18,6 @@ export default function Home() {
     <main className="relative min-h-screen">
       {/* Background effects - layered */}
       <ParallaxGrid />
-      <GlowingBlobs />
       <ParticlesBackground />
       <FloatingCode />
       <CursorGlow />

@@ -100,7 +100,7 @@ export function ParticlesBackground() {
   if (!PARTICLES_ENABLED || !init) return null
 
   return (
-    <div className="fixed inset-0 -z-10">
+    <div className="fixed inset-0 -z-10" style={{ willChange: 'opacity' }}>
       <Particles
         id="tsparticles"
         options={options}

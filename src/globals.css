@@ -51,7 +51,7 @@ body {
 
 /* Base card - used for containers and sections */
 .card {
-  @apply bg-surface/80 backdrop-blur-md border border-border rounded-xl;
+  @apply bg-surface/80 backdrop-blur-2xl border border-border rounded-xl;
   transition: all 0.2s ease;
 }
 

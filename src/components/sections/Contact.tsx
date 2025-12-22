@@ -15,10 +15,8 @@ export function Contact() {
 
       <motion.div
         className="card p-5 relative"
-        initial={{ opacity: 0, y: 12 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.4 }}
+        initial={{ opacity: 1 }}
+        animate={{ opacity: 1 }}
       >
         {/* Button: top right on desktop, below on mobile */}
         <div className="hidden sm:block">

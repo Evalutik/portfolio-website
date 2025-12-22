@@ -76,35 +76,35 @@ interface TypewriterCodeProps {
   triggerEnd: number
 }
 
-function TypewriterCode({ 
-  code, 
-  language, 
-  side, 
-  top, 
+function TypewriterCode({
+  code,
+  language,
+  side,
+  top,
   triggerStart,
-  triggerEnd 
+  triggerEnd
 }: TypewriterCodeProps) {
   const [displayedCode, setDisplayedCode] = useState('')
   const [showCursor, setShowCursor] = useState(true)
   const [opacity, setOpacity] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
-  
+
   const { scrollYProgress } = useScroll()
-  
+
   // Handle scroll progress changes
   useEffect(() => {
     const updateFromScroll = () => {
       const progress = scrollYProgress.get()
       const localProgress = Math.max(0, Math.min(1, (progress - triggerStart) / (triggerEnd - triggerStart)))
       const isVisible = progress >= triggerStart - 0.05 && progress <= triggerEnd + 0.1
-      
+
       // Calculate opacity
-      const newOpacity = isVisible 
-        ? Math.min(1, localProgress * 3) * (1 - Math.max(0, (localProgress - 0.8) * 5)) 
+      const newOpacity = isVisible
+        ? Math.min(1, localProgress * 3) * (1 - Math.max(0, (localProgress - 0.8) * 5))
         : 0
-      
+
       setOpacity(newOpacity)
-      
+
       // Typing effect
       if (!isVisible) {
         setDisplayedCode('')
@@ -113,24 +113,24 @@ function TypewriterCode({
         setDisplayedCode(code.slice(0, Math.min(charsToShow, code.length)))
       }
     }
-    
+
     // Initial update
     updateFromScroll()
-    
+
     // Subscribe to scroll changes using requestAnimationFrame for throttling
     let rafId: number
     const handleScroll = () => {
       cancelAnimationFrame(rafId)
       rafId = requestAnimationFrame(updateFromScroll)
     }
-    
+
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => {
       window.removeEventListener('scroll', handleScroll)
       cancelAnimationFrame(rafId)
     }
   }, [scrollYProgress, triggerStart, triggerEnd, code])
-  
+
   // Blinking cursor
   useEffect(() => {
     const interval = setInterval(() => {
@@ -156,11 +156,11 @@ function TypewriterCode({
       <div className="text-text-muted/30 text-[10px] mb-1 uppercase tracking-wider">
         {language}
       </div>
-      
+
       {/* Code block */}
       <pre className="text-text-muted/25 leading-relaxed whitespace-pre">
         {displayedCode}
-        <span 
+        <span
           className="inline-block w-[2px] h-[1em] bg-text-muted/40 ml-[1px] align-middle"
           style={{ opacity: showCursor && displayedCode.length < code.length ? 1 : 0 }}
         />
@@ -179,16 +179,16 @@ function TypewriterCode({
  */
 export function FloatingCode() {
   // Memoize snippet configs to prevent re-renders
-  const snippetConfigs = useMemo(() => 
+  const snippetConfigs = useMemo(() =>
     codeSnippets.map((snippet, index) => ({
       ...snippet,
       triggerStart: 0.05 + index * 0.14,
       triggerEnd: 0.05 + index * 0.14 + 0.18,
-    })), 
-  [])
+    })),
+    [])
 
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
+    <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0, willChange: 'opacity, transform' }}>
       {snippetConfigs.map((snippet) => (
         <TypewriterCode
           key={snippet.id}

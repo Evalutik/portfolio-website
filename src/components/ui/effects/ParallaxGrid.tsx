@@ -41,7 +41,7 @@ export function ParallaxGrid() {
                 zIndex: -10,
                 // Extend the grid height to cover parallax movement
                 height: '200vh',
-                willChange: 'transform',
+                willChange: 'transform', // GPU acceleration for parallax
             }}
         />
     )

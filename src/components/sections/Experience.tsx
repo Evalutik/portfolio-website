@@ -469,7 +469,7 @@ export function Experience() {
                 transition={{ duration: 0.4, delay: 0.2 }}
             >
                 <p>
-                    Explore my professional journey through this interactive terminal interface.
+                    Browse my work history through this interactive terminal interface.
                     Navigate using the arrow keys <span className="font-mono text-text-primary">↑</span> <span className="font-mono text-text-primary">↓</span> to
                     move between positions, then press <span className="font-mono text-text-primary">⏎</span> to view details about each role.
                     You can also click directly on any item with your mouse.

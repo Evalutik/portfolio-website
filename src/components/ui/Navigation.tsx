@@ -17,6 +17,16 @@ export function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('')
   const [scrolled, setScrolled] = useState(false)
+  const [galaxyOpen, setGalaxyOpen] = useState(false)
+
+  // Track galaxy modal open state via body class
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setGalaxyOpen(document.body.classList.contains('galaxy-open'))
+    })
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] })
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -81,10 +91,10 @@ export function Navigation() {
     <>
       {/* Top Navigation Bar */}
       <motion.header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'py-3' : 'py-4'
-          }`}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${galaxyOpen ? 'opacity-0 pointer-events-none' : ''
+          } ${scrolled ? 'py-3' : 'py-4'}`}
         initial={{ y: -100 }}
-        animate={{ y: 0 }}
+        animate={{ y: galaxyOpen ? -100 : 0 }}
         transition={{ duration: 0.3 }}
       >
         <div className="max-w-3xl mx-auto px-4">
@@ -231,7 +241,7 @@ export function Navigation() {
 
       {/* Side Progress Indicator - Desktop */}
       <motion.div
-        className={`fixed right-4 top-1/2 -translate-y-1/2 z-30 hidden lg:flex flex-col gap-2 transition-opacity duration-300 ${scrolled && !isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        className={`fixed right-4 top-1/2 -translate-y-1/2 z-30 hidden lg:flex flex-col gap-2 transition-opacity duration-300 ${scrolled && !isOpen && !galaxyOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
       >
         {navItems.map((item) => (

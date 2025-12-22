@@ -545,6 +545,8 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
             document.body.style.overscrollBehavior = 'none'
             // Also hide on html element to prevent scrollbar during React re-renders
             document.documentElement.style.overflow = 'hidden'
+            // Add class for other components to detect galaxy view
+            document.body.classList.add('galaxy-open')
 
             updateDimensions()
             window.addEventListener('resize', updateDimensions)
@@ -588,6 +590,7 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick }: SkillGraphMod
                 document.body.style.paddingRight = ''
                 document.body.style.overscrollBehavior = ''
                 document.documentElement.style.overflow = ''
+                document.body.classList.remove('galaxy-open')
                 window.removeEventListener('resize', updateDimensions)
             }
         }
