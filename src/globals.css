@@ -118,6 +118,19 @@ body {
   @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-dark to-accent;
 }
 
+/* Animated gradient text - flows on hover */
+.text-gradient-animated {
+  @apply bg-clip-text text-transparent;
+  background-image: linear-gradient(90deg, #432499, #6f3ef6, #a78bfa, #6f3ef6, #432499);
+  background-size: 200% 100%;
+  background-position: 0% 50%;
+  transition: background-position 0.8s ease;
+}
+
+.text-gradient-animated:hover {
+  background-position: 100% 50%;
+}
+
 /* Monospace code styling */
 .code-text {
   @apply font-mono text-sm text-text-secondary;
@@ -184,4 +197,244 @@ body {
 .btn-secondary-shine>* {
   position: relative;
   z-index: 1;
+}
+
+/* =============================================================================
+   KEYPAD 3D BUTTONS
+   ============================================================================= */
+
+.keypad {
+  --travel: 20;
+  position: relative;
+  aspect-ratio: 400 / 310;
+  display: flex;
+  place-items: center;
+  width: clamp(200px, 28vw, 320px);
+  -webkit-tap-highlight-color: transparent;
+  transform-style: preserve-3d;
+}
+
+.keypad .key {
+  transform-style: preserve-3d;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  outline: none;
+}
+
+/* Subtle press on hover - 30% of full travel */
+.keypad .key:hover .key__content {
+  translate: 0 calc(var(--travel) * 0.3%);
+}
+
+/* Full press on click - takes priority over hover */
+.keypad .key[data-pressed='true'] .key__content,
+.keypad .key:active .key__content {
+  translate: 0 calc(var(--travel) * 1%);
+}
+
+.keypad .key__content {
+  width: 100%;
+  display: inline-block;
+  height: 100%;
+  transition: translate 0.12s ease-out;
+  container-type: inline-size;
+}
+
+.keypad .key__mask {
+  width: 100%;
+  height: 100%;
+  display: inline-block;
+}
+
+.keypad .key__text {
+  height: 46%;
+  width: 86%;
+  position: absolute;
+  font-size: 12cqi;
+  z-index: 21;
+  top: 5%;
+  left: 0;
+  color: hsl(0 0% 94%);
+  translate: 8% 10%;
+  transform: rotateX(36deg) rotateY(45deg) rotateX(-90deg) rotate(0deg);
+  text-align: left;
+  padding: 1ch;
+  font-weight: 500;
+  text-transform: lowercase;
+}
+
+/* Smaller text variant for button labels */
+.keypad .key__text--small {
+  font-size: 9cqi;
+}
+
+.keypad .key__img {
+  filter: hue-rotate(calc(var(--hue, 0) * 1deg)) saturate(var(--saturate, 1)) brightness(var(--brightness, 1));
+  transition: translate 0.12s ease-out;
+}
+
+/* Single keys (small square) */
+.keypad .keypad__single {
+  position: absolute;
+  width: 40.5%;
+  left: 54%;
+  bottom: 36%;
+  height: 46%;
+  --travel: 26;
+  clip-path: polygon(0 0,
+      54% 0,
+      89% 24%,
+      100% 70%,
+      54% 100%,
+      46% 100%,
+      0 69%,
+      12% 23%,
+      47% 0%);
+  mask: url(/keypad/keypad-single.png) 50% 50% / 100% 100%;
+}
+
+.keypad .keypad__single .key__text {
+  width: 52%;
+  height: 62%;
+  translate: 45% -16%;
+  font-size: 18cqi;
+}
+
+.keypad .keypad__single .key__text--small {
+  font-size: 11cqi;
+}
+
+.keypad .keypad__single .key__img {
+  top: 0;
+  opacity: 1;
+  width: 96%;
+  position: absolute;
+  left: 50%;
+  translate: -50% 1%;
+}
+
+.keypad .keypad__single--left {
+  left: 29.3%;
+  bottom: 54.2%;
+}
+
+/* Double key (large rectangle) */
+.keypad .keypad__double {
+  position: absolute;
+  background: transparent;
+  width: 64%;
+  height: 65%;
+  left: 6%;
+  bottom: 17.85%;
+  --travel: 18;
+  clip-path: polygon(34% 0,
+      93% 44%,
+      101% 78%,
+      71% 100%,
+      66% 100%,
+      0 52%,
+      0 44%,
+      7% 17%,
+      30% 0);
+  mask: url(/keypad/keypad-double.png) 50% 50% / 100% 100%;
+}
+
+.keypad .keypad__double .key__img {
+  top: 0;
+  opacity: 1;
+  width: 99%;
+  position: absolute;
+  left: 50%;
+  translate: -50% 1%;
+}
+
+.keypad .keypad__base {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+}
+
+.keypad .keypad__base img {
+  width: 100%;
+}
+
+/* Keypad tooltips */
+.keypad-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.5rem 0.75rem;
+  background: rgba(18, 18, 26, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: #a1a1aa;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 100;
+  margin-bottom: 0.5rem;
+  backdrop-filter: blur(8px);
+  animation: tooltip-fade-in 0.15s ease-out;
+  /* Prevent overflow on small screens */
+  max-width: calc(100vw - 2rem);
+}
+
+/* Adjust tooltip position for edge cases */
+.keypad__single--left .keypad-tooltip {
+  left: 0;
+  transform: translateX(0);
+}
+
+.keypad__single:not(.keypad__single--left) .keypad-tooltip {
+  left: auto;
+  right: 0;
+  transform: translateX(0);
+}
+
+@keyframes tooltip-fade-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Global tooltip rendered at keypad level - outside clip-path */
+.keypad-tooltip-global {
+  position: absolute;
+  padding: 0.5rem 0.75rem;
+  background: rgba(18, 18, 26, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: #a1a1aa;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+  animation: tooltip-fade-in-right 0.15s ease-out forwards;
+}
+
+/* Right-side tooltip positioning */
+.keypad-tooltip-right {
+  transform: translateX(-50%) translateY(-100%);
+}
+
+@keyframes tooltip-fade-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(calc(-100% + 4px));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-100%);
+  }
 }

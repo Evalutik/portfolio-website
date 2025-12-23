@@ -1,9 +1,30 @@
 'use client'
 
+import { useState, useCallback, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Button } from '@/components/ui/common/Button'
+import { RotatingText } from '@/components/ui/effects/RotatingText'
+import { Keypad } from '@/components/ui/effects/Keypad'
+import { HERO_ROTATING_WORDS, HERO_ROTATION_INTERVAL } from '@/config/hero'
 
 export function Hero() {
+  const [gradientPosition, setGradientPosition] = useState(0)
+  const [isHovered, setIsHovered] = useState(false)
+  const gradientRef = useRef<HTMLSpanElement>(null)
+
+  const handleMagicClick = useCallback(() => {
+    setGradientPosition((prev) => (prev + 50) % 150)
+  }, [])
+
+  const handleMouseEnter = useCallback(() => {
+    setIsHovered(true)
+  }, [])
+
+  const handleMouseLeave = useCallback(() => {
+    setIsHovered(false)
+  }, [])
+
+  const actualGradientPosition = isHovered ? 100 : gradientPosition
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -25,68 +46,73 @@ export function Hero() {
   }
 
   return (
-    <section className="relative min-h-screen flex items-center py-20 overflow-hidden">
+    <section className="relative min-h-screen flex flex-col justify-start md:justify-center py-20 overflow-hidden">
       {/* Subtle gradient orbs */}
-      <div className="gradient-orb w-[600px] h-[600px] bg-primary/30 -top-[200px] -left-[200px]" />
-      <div className="gradient-orb w-[500px] h-[500px] bg-accent/20 bottom-[10%] -right-[150px]" />
+      <div className="gradient-orb w-[600px] h-[600px] bg-primary/20 -top-[200px] -left-[200px] opacity-50" />
+      <div className="gradient-orb w-[500px] h-[500px] bg-accent/20 bottom-[10%] -right-[150px] opacity-50" />
 
-      {/* Container with proper max-width matching site layout */}
-      <div className="max-w-3xl mx-auto px-4 w-full">
+      {/* Container - responsive layout */}
+      <div className="max-w-3xl mx-auto px-4 w-full relative z-10 mt-16 md:mt-0 md:-mt-20">
+        {/* Text content */}
         <motion.div
-          className="relative z-10 max-w-xl text-left"
+          className="text-center md:text-left"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
-          {/* Badge */}
-          <motion.div
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface border border-border text-xs text-text-secondary mb-6"
-            variants={itemVariants}
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            Open to offers
-          </motion.div>
-
-          {/* Name */}
+          {/* Main headline - bigger on mobile */}
           <motion.h1
-            className="text-4xl md:text-5xl font-semibold mb-4 tracking-tight text-text-primary"
+            className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold mb-6 tracking-tight text-text-primary"
             variants={itemVariants}
           >
-            Andrei Fedyna
+            Hi, I'm{' '}
+            <span
+              ref={gradientRef}
+              className="text-gradient-animated cursor-default"
+              style={{ backgroundPosition: `${actualGradientPosition}% 50%` }}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            >
+              Andrei
+            </span>
           </motion.h1>
 
-          {/* Title */}
-          <motion.h2
-            className="text-lg md:text-xl text-text-secondary mb-6 font-normal"
-            variants={itemVariants}
-          >
-            <span className="text-gradient font-medium">Data Engineer</span>
-            {' '}&{' '}
-            <span className="text-gradient font-medium">AI Specialist</span>
-          </motion.h2>
-
-          {/* Tagline */}
-          <motion.p
-            className="text-base text-text-muted mb-10 max-w-lg mr-auto leading-relaxed"
-            variants={itemVariants}
-          >
-            Building data pipelines and intelligent systems that transform complex data into actionable insights.
-          </motion.p>
-
-          {/* CTA Buttons */}
+          {/* Rotating tagline - wrapper centers on mobile, text expands from left */}
           <motion.div
-            className="flex flex-row gap-3 justify-start"
+            className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-medium text-text-secondary flex justify-center md:justify-start"
             variants={itemVariants}
           >
-            <Button href="#projects" variant="primary">
-              View Work
-            </Button>
-            <Button href="#contact" variant="secondary">
-              Contact
-            </Button>
+            <span className="text-left">
+              I build{' '}
+              <RotatingText
+                words={HERO_ROTATING_WORDS}
+                interval={HERO_ROTATION_INTERVAL}
+                className="min-w-[140px] sm:min-w-[180px] md:min-w-[220px] lg:min-w-[280px]"
+              />
+            </span>
           </motion.div>
         </motion.div>
+
+        {/* Keypad - Desktop & Tablet: right side overlapping (same layout) */}
+        <motion.div
+          className="absolute right-0 top-1/2 translate-x-1/2 translate-y-[-20%] hidden md:block"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, delay: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+        >
+          <Keypad onMagicClick={handleMagicClick} />
+        </motion.div>
       </div>
+
+      {/* Keypad - Mobile: centered, below content */}
+      <motion.div
+        className="md:hidden flex justify-center mt-12 scale-90"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 0.9 }}
+        transition={{ duration: 0.6, delay: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+      >
+        <Keypad onMagicClick={handleMagicClick} />
+      </motion.div>
     </section>
   )
 }
