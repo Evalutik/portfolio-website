@@ -11,8 +11,9 @@ export interface ProjectConfig {
     summary: string         // Short one-liner for hover tooltip
     description: string     // Full description for preview panel (supports \n\n for paragraphs)
     tech: string[]
-    github: string
-    live: string
+    isPrivate?: boolean     // If true, project is private/confidential (no links shown)
+    github?: string         // Optional - only shown if defined and not private
+    live?: string           // Optional - only shown if defined and not private
     icon?: LucideIcon       // Optional icon for the folder
 }
 
@@ -43,6 +44,7 @@ The architecture implements exactly-once semantics, automatic schema evolution, 
 
 Key challenges solved include handling backpressure during traffic spikes, implementing efficient state management for windowed aggregations, and ensuring data consistency across distributed consumers.`,
         tech: ['Apache Kafka', 'Flink', 'Python', 'AWS'],
+        isPrivate: false,
         github: '#',
         live: '#',
     },
@@ -58,6 +60,7 @@ The system features a declarative rule engine supporting custom SQL-based checks
 
 Historical trend analysis enables teams to track data quality metrics over time, identify recurring issues, and measure the impact of schema changes or upstream modifications.`,
         tech: ['Great Expectations', 'Airflow', 'Grafana'],
+        isPrivate: false,
         github: '#',
         live: '#',
     },
@@ -73,8 +76,7 @@ Features include point-in-time correct historical feature retrieval for training
 
 The platform reduced feature development time by 60% and eliminated training-serving skew that previously caused model performance degradation in production.`,
         tech: ['Python', 'Redis', 'PostgreSQL', 'Docker'],
-        github: '#',
-        live: '#',
+        isPrivate: true,
     },
     {
         id: 'dashboard',
@@ -88,6 +90,7 @@ The backend leverages ClickHouse for sub-second query performance on billions of
 
 Custom chart components include time-series with anomaly highlighting, cohort analysis views, and geographic heatmaps. The dashboard supports scheduled PDF exports and configurable alerting thresholds.`,
         tech: ['React', 'D3.js', 'FastAPI', 'ClickHouse'],
+        isPrivate: false,
         github: '#',
         live: '#',
     },

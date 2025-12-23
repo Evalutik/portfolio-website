@@ -208,6 +208,39 @@ body.page-loaded {
   z-index: 1;
 }
 
+/* Purple shining border effect - wrapper-based rotating gradient */
+.btn-purple-glow-wrapper {
+  position: relative;
+  display: inline-block;
+  padding: 2px;
+  border-radius: 10px;
+  background: conic-gradient(from var(--glow-angle, 0deg),
+      transparent 0%,
+      transparent 40%,
+      #6f3ef6 45%,
+      #a78bfa 50%,
+      #6f3ef6 55%,
+      transparent 60%,
+      transparent 100%);
+  animation: purple-glow-spin 1.4s linear infinite;
+}
+
+@property --glow-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes purple-glow-spin {
+  0% {
+    --glow-angle: 0deg;
+  }
+
+  100% {
+    --glow-angle: 360deg;
+  }
+}
+
 /* =============================================================================
    KEYPAD 3D BUTTONS
    ============================================================================= */

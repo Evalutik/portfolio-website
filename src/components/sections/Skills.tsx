@@ -78,12 +78,14 @@ export function Skills() {
           <span>Visit the</span>
 
           {/* "Skill Galaxy" button - styled like Close button in galaxy view */}
-          <button
-            onClick={() => setShowGraph(true)}
-            className="bg-surface/80 backdrop-blur-md border border-border rounded-lg px-3 py-1.5 flex items-center hover:bg-surface-light hover:border-border-light transition-all duration-200 btn-secondary-shine"
-          >
-            <span className="text-xs text-text-primary">Skill Galaxy</span>
-          </button>
+          <span className="btn-purple-glow-wrapper">
+            <button
+              onClick={() => setShowGraph(true)}
+              className="bg-surface/80 backdrop-blur-md border border-border rounded-lg px-3 py-1.5 flex items-center hover:bg-surface-light hover:border-border-light transition-all duration-200 btn-secondary-shine"
+            >
+              <span className="text-xs text-text-primary">Skill Galaxy</span>
+            </button>
+          </span>
           <span>to explore all skills!</span>
         </div>
       </div>

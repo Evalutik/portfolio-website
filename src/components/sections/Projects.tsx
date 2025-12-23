@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Lock } from 'lucide-react'
 import { SectionHeading } from '@/components/ui/common/SectionHeading'
 import { FileTree } from '@/components/ui/projects/FileTree'
 import { Button } from '@/components/ui/common/Button'
@@ -110,24 +111,58 @@ export function Projects() {
                 </div>
               </div>
 
-              {/* Action buttons - no arrows */}
-              <div className="flex gap-2 pt-4 border-t border-border">
-                <Button
-                  href={selectedProject.github}
-                  variant="secondary"
-                  external
-                  className="text-xs px-3 py-1.5"
-                >
-                  GitHub
-                </Button>
-                <Button
-                  href={selectedProject.live}
-                  variant="secondary"
-                  external
-                  className="text-xs px-3 py-1.5"
-                >
-                  Live Demo
-                </Button>
+              {/* Action buttons - conditional based on project visibility */}
+              <div className="pt-4 border-t border-border">
+                {selectedProject.isPrivate ? (
+                  <>
+                    {/* Private project: disabled button + notice */}
+                    <button
+                      disabled
+                      className="inline-flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg bg-surface border border-border text-text-muted opacity-50 cursor-not-allowed"
+                    >
+                      <Lock className="w-3 h-3" />
+                      Private
+                    </button>
+                    <p className="text-text-muted text-sm mt-3">
+                      This project was developed for a customer or is not open-source.
+                      Feel free to{' '}
+                      <a
+                        href="#contact"
+                        className="text-accent hover:underline"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })
+                        }}
+                      >
+                        contact me directly
+                      </a>
+                      {' '}for more details.
+                    </p>
+                  </>
+                ) : (
+                  <div className="flex gap-2">
+                    {selectedProject.github && (
+                      <Button
+                        href={selectedProject.github}
+                        variant="secondary"
+                        external
+                        className="text-xs px-3 py-1.5"
+                      >
+                        GitHub
+                      </Button>
+                    )}
+                    {selectedProject.live && (
+                      <Button
+                        href={selectedProject.live}
+                        variant="secondary"
+                        external
+                        className="text-xs px-3 py-1.5"
+                      >
+                        Live Demo
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
