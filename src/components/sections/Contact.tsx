@@ -42,7 +42,7 @@ export function Contact() {
           <div>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="btn-secondary-shine inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-surface border border-border text-text-primary text-sm font-medium transition-all hover:bg-surface-light hover:border-border-light"
+              className="btn-secondary-shine w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-surface border border-border text-text-primary text-sm font-medium transition-all hover:bg-surface-light hover:border-border-light"
             >
               <span className="relative z-10 flex items-center gap-2">
                 <Download className="w-4 h-4" />
@@ -53,7 +53,14 @@ export function Contact() {
 
           {/* Card footer: contact info and Get in touch button */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 border-t border-border">
-            {/* Contact info - left side */}
+            {/* Get in touch button - First on mobile, right side on desktop */}
+            <div className="order-first sm:order-last sm:flex-shrink-0">
+              <Button href="mailto:andreyfedyna@gmail.com" variant="primary" className="w-full sm:w-auto" external>
+                Get in touch
+              </Button>
+            </div>
+
+            {/* Contact info - left side on desktop, below button on mobile */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
               <a
                 href="mailto:andreyfedyna@gmail.com"
@@ -82,13 +89,6 @@ export function Contact() {
                   <Github className="w-3.5 h-3.5" strokeWidth={1.5} />
                 </a>
               </div>
-            </div>
-
-            {/* Get in touch button - right side on desktop, full width on mobile */}
-            <div className="sm:flex-shrink-0">
-              <Button href="mailto:andreyfedyna@gmail.com" variant="primary" className="w-full sm:w-auto" external>
-                Get in touch
-              </Button>
             </div>
           </div>
         </div>

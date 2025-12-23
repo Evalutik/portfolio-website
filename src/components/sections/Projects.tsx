@@ -30,14 +30,14 @@ export function Projects() {
       <SectionHeading title="Projects" />
 
       <motion.div
-        className="flex gap-6"
+        className="flex flex-col md:flex-row gap-6"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
         transition={{ duration: 0.4 }}
       >
-        {/* File Tree - Left Side */}
-        <div className="w-56 flex-shrink-0">
+        {/* File Tree - Top on mobile, Left side on desktop */}
+        <div className="w-full md:w-56 md:flex-shrink-0">
           <FileTree
             folders={folders}
             selectedId={selectedProject?.id || null}

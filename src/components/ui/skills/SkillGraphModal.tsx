@@ -97,11 +97,20 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick, preloadMode = f
     const [selectedHub, setSelectedHub] = useState<GraphHub | null>(null)
     const [hoveredNode, setHoveredNode] = useState<GraphNode | null>(null)
     const [showWelcome, setShowWelcome] = useState(false)
+    const [isMobile, setIsMobile] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)
     const fgRef = useRef<any>(null)
     const graphConfiguredRef = useRef(false)
     const searchInputRef = useRef<HTMLInputElement>(null)
     const userInteractedRef = useRef(false)
+
+    // Detect mobile viewport
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768)
+        checkMobile()
+        window.addEventListener('resize', checkMobile)
+        return () => window.removeEventListener('resize', checkMobile)
+    }, [])
 
     // Check if welcome popup should show on first ACTUAL open (not preload)
     useEffect(() => {
@@ -717,9 +726,10 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick, preloadMode = f
                             {/* Close Button */}
                             <button
                                 onClick={onClose}
-                                className={`${panelClass} px-3 py-1.5 flex items-center self-stretch hover:bg-surface-light hover:border-border-light transition-all duration-200 btn-secondary-shine`}
+                                className={`${panelClass} px-1.5 py-1.5 self-stretch flex items-center hover:bg-surface-light hover:border-border-light transition-all duration-200`}
+                                title="Close"
                             >
-                                <span className="text-xs text-text-muted">Close</span>
+                                <X className="w-3.5 h-3.5 text-text-muted" />
                             </button>
                         </div>
 
@@ -745,8 +755,14 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick, preloadMode = f
                             ))}
                         </div>
 
-                        {/* Zoom Controls (Bottom Right) */}
-                        <div className="absolute bottom-5 right-5 z-10 flex flex-col gap-1">
+                        {/* Zoom Controls - Horizontal on mobile, vertical on desktop */}
+                        {/* On mobile, they move up when card is shown */}
+                        <div
+                            className="absolute right-5 z-10 flex flex-row md:flex-col gap-1 transition-all duration-200"
+                            style={{
+                                bottom: (isMobile && showCard) ? 'calc(40vh + 20px)' : '20px'
+                            }}
+                        >
                             <button
                                 onClick={handleZoomIn}
                                 className={`${panelClass} p-1.5 hover:bg-surface-light hover:border-border-light transition-all duration-200`}
@@ -784,124 +800,244 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick, preloadMode = f
                             </motion.div>
                         )}
 
-                        {/* Info Card (Left, Vertically Centered) */}
+                        {/* Info Card - Left side on desktop, bottom sheet on mobile */}
                         <AnimatePresence>
                             {showCard && (
-                                <motion.div
-                                    className="absolute left-5 top-0 bottom-0 z-20 flex items-center pointer-events-none"
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -20 }}
-                                    transition={{ duration: 0.2 }}
-                                >
-                                    <div className={`${panelClass} w-64 flex flex-col pointer-events-auto`} style={{ maxHeight: '55vh' }}>
-                                        {/* Header */}
-                                        <div className="flex items-start justify-between p-3 border-b border-border flex-shrink-0">
-                                            <div className="flex items-stretch gap-2">
-                                                {CardIcon && (
-                                                    <div className="bg-surface rounded border border-border flex items-center justify-center aspect-square self-stretch">
-                                                        <CardIcon className="w-4 h-4 text-accent mx-1.5" strokeWidth={1.5} />
+                                <>
+                                    {/* Desktop: Left side card */}
+                                    <motion.div
+                                        className="absolute left-5 top-0 bottom-0 z-20 hidden md:flex items-center pointer-events-none"
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: -20 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <div className={`${panelClass} w-64 flex flex-col pointer-events-auto`} style={{ maxHeight: '55vh' }}>
+                                            {/* Header */}
+                                            <div className="flex items-start justify-between p-3 border-b border-border flex-shrink-0">
+                                                <div className="flex items-stretch gap-2">
+                                                    {CardIcon && (
+                                                        <div className="bg-surface rounded border border-border flex items-center justify-center aspect-square self-stretch">
+                                                            <CardIcon className="w-4 h-4 text-accent mx-1.5" strokeWidth={1.5} />
+                                                        </div>
+                                                    )}
+                                                    <div className="flex flex-col justify-center">
+                                                        <h3 className="text-xs font-medium text-text-primary">
+                                                            {cardTitle}
+                                                        </h3>
+                                                        {cardExperience && (
+                                                            <span className="text-[9px] font-mono text-text-muted">
+                                                                {cardExperience}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={closeCard}
+                                                    className="p-0.5 hover:bg-surface-light rounded transition-colors"
+                                                >
+                                                    <X className="w-3.5 h-3.5 text-text-muted" />
+                                                </button>
+                                            </div>
+
+                                            {/* Scrollable Content */}
+                                            <div className="flex-1 overflow-y-auto p-3">
+                                                {/* Category for skills */}
+                                                {cardCategory && cardCategoryColor && (
+                                                    <div className="flex items-center gap-1.5 mb-2">
+                                                        <div
+                                                            className="w-2 h-2 rounded-full flex-shrink-0"
+                                                            style={{ backgroundColor: cardCategoryColor }}
+                                                        />
+                                                        <span className="text-[10px] text-text-muted">
+                                                            {cardCategory}
+                                                        </span>
                                                     </div>
                                                 )}
-                                                <div className="flex flex-col justify-center">
-                                                    <h3 className="text-xs font-medium text-text-primary">
-                                                        {cardTitle}
-                                                    </h3>
-                                                    {cardExperience && (
-                                                        <span className="text-[9px] font-mono text-text-muted">
-                                                            {cardExperience}
+
+                                                <p className="text-[11px] text-text-secondary leading-relaxed mb-3">
+                                                    {cardDescription}
+                                                </p>
+
+                                                {cardUseCases && cardUseCases.length > 0 && (
+                                                    <div className="mb-3">
+                                                        <span className="text-[9px] font-mono text-text-muted uppercase tracking-widest block mb-1.5">
+                                                            {'// '}use cases
                                                         </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <button
-                                                onClick={closeCard}
-                                                className="p-0.5 hover:bg-surface-light rounded transition-colors"
-                                            >
-                                                <X className="w-3.5 h-3.5 text-text-muted" />
-                                            </button>
-                                        </div>
-
-                                        {/* Scrollable Content */}
-                                        <div className="flex-1 overflow-y-auto p-3">
-                                            {/* Category for skills */}
-                                            {cardCategory && cardCategoryColor && (
-                                                <div className="flex items-center gap-1.5 mb-2">
-                                                    <div
-                                                        className="w-2 h-2 rounded-full flex-shrink-0"
-                                                        style={{ backgroundColor: cardCategoryColor }}
-                                                    />
-                                                    <span className="text-[10px] text-text-muted">
-                                                        {cardCategory}
-                                                    </span>
-                                                </div>
-                                            )}
-
-                                            <p className="text-[11px] text-text-secondary leading-relaxed mb-3">
-                                                {cardDescription}
-                                            </p>
-
-                                            {cardUseCases && cardUseCases.length > 0 && (
-                                                <div className="mb-3">
-                                                    <span className="text-[9px] font-mono text-text-muted uppercase tracking-widest block mb-1.5">
-                                                        {'// '}use cases
-                                                    </span>
-                                                    <div className="flex flex-wrap gap-1">
-                                                        {cardUseCases.map((useCase) => (
-                                                            <span
-                                                                key={useCase}
-                                                                className="px-1.5 py-0.5 text-[9px] bg-surface-light border border-border rounded text-text-secondary font-mono"
-                                                            >
-                                                                {useCase}
-                                                            </span>
-                                                        ))}
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {cardUseCases.map((useCase) => (
+                                                                <span
+                                                                    key={useCase}
+                                                                    className="px-1.5 py-0.5 text-[9px] bg-surface-light border border-border rounded text-text-secondary font-mono"
+                                                                >
+                                                                    {useCase}
+                                                                </span>
+                                                            ))}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            )}
+                                                )}
 
-                                            {cardRelated && cardRelated.length > 0 && (
-                                                <div>
-                                                    <span className="text-[9px] font-mono text-text-muted uppercase tracking-widest block mb-1.5">
-                                                        {'// '}related
-                                                    </span>
-                                                    <div className="flex flex-wrap gap-1">
-                                                        {cardRelated.slice(0, 6).map((related) => (
-                                                            <span
-                                                                key={related}
-                                                                className="px-1.5 py-0.5 text-[9px] bg-surface-light border border-border rounded text-text-secondary font-mono hover:border-accent hover:text-text-primary cursor-pointer transition-colors"
-                                                                onClick={() => {
-                                                                    const skill = getSkillByTitle(related)
-                                                                    if (skill) {
-                                                                        const node = graphData.nodes.find(n => n.id === related)
-                                                                        if (node) {
-                                                                            setSelectedNode(node)
-                                                                            setSelectedSkill(skill)
-                                                                            setSelectedHub(null)
-                                                                            zoomToNode(node)
+                                                {cardRelated && cardRelated.length > 0 && (
+                                                    <div>
+                                                        <span className="text-[9px] font-mono text-text-muted uppercase tracking-widest block mb-1.5">
+                                                            {'// '}related
+                                                        </span>
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {cardRelated.slice(0, 6).map((related) => (
+                                                                <span
+                                                                    key={related}
+                                                                    className="px-1.5 py-0.5 text-[9px] bg-surface-light border border-border rounded text-text-secondary font-mono hover:border-accent hover:text-text-primary cursor-pointer transition-colors"
+                                                                    onClick={() => {
+                                                                        const skill = getSkillByTitle(related)
+                                                                        if (skill) {
+                                                                            const node = graphData.nodes.find(n => n.id === related)
+                                                                            if (node) {
+                                                                                setSelectedNode(node)
+                                                                                setSelectedSkill(skill)
+                                                                                setSelectedHub(null)
+                                                                                zoomToNode(node)
+                                                                            }
                                                                         }
-                                                                    }
-                                                                }}
-                                                            >
-                                                                {related}
+                                                                    }}
+                                                                >
+                                                                    {related}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {selectedHub && (
+                                                    <div className="mt-2">
+                                                        <span className="text-[9px] font-mono text-text-muted uppercase tracking-widest block mb-1.5">
+                                                            {'// '}skills
+                                                        </span>
+                                                        <span className="text-[10px] text-text-secondary">
+                                                            {getHubSkillCount(selectedHub.id)} skills in this category
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </motion.div>
+
+                                    {/* Mobile: Bottom sheet card */}
+                                    <motion.div
+                                        className="absolute left-0 right-0 bottom-0 z-20 md:hidden pointer-events-auto"
+                                        initial={{ opacity: 0, y: 100 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 100 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <div className={`${panelClass} rounded-b-none flex flex-col`} style={{ height: '40vh' }}>
+                                            {/* Header */}
+                                            <div className="flex items-start justify-between p-5 border-b border-border flex-shrink-0">
+                                                <div className="flex items-stretch gap-2">
+                                                    {CardIcon && (
+                                                        <div className="bg-surface rounded border border-border flex items-center justify-center aspect-square self-stretch">
+                                                            <CardIcon className="w-4 h-4 text-accent mx-1.5" strokeWidth={1.5} />
+                                                        </div>
+                                                    )}
+                                                    <div className="flex flex-col justify-center">
+                                                        <h3 className="text-sm font-medium text-text-primary">
+                                                            {cardTitle}
+                                                        </h3>
+                                                        {cardExperience && (
+                                                            <span className="text-xs font-mono text-text-muted">
+                                                                {cardExperience}
                                                             </span>
-                                                        ))}
+                                                        )}
                                                     </div>
                                                 </div>
-                                            )}
+                                                <button
+                                                    onClick={closeCard}
+                                                    className="p-0.5 hover:bg-surface-light rounded transition-colors"
+                                                >
+                                                    <X className="w-3.5 h-3.5 text-text-muted" />
+                                                </button>
+                                            </div>
 
-                                            {selectedHub && (
-                                                <div className="mt-2">
-                                                    <span className="text-[9px] font-mono text-text-muted uppercase tracking-widest block mb-1.5">
-                                                        {'// '}skills
-                                                    </span>
-                                                    <span className="text-[10px] text-text-secondary">
-                                                        {getHubSkillCount(selectedHub.id)} skills in this category
-                                                    </span>
-                                                </div>
-                                            )}
+                                            {/* Scrollable Content */}
+                                            <div className="flex-1 overflow-y-auto p-5">
+                                                {/* Category for skills */}
+                                                {cardCategory && cardCategoryColor && (
+                                                    <div className="flex items-center gap-1.5 mb-2">
+                                                        <div
+                                                            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                                                            style={{ backgroundColor: cardCategoryColor }}
+                                                        />
+                                                        <span className="text-xs text-text-muted">
+                                                            {cardCategory}
+                                                        </span>
+                                                    </div>
+                                                )}
+
+                                                <p className="text-sm text-text-secondary leading-relaxed mb-3">
+                                                    {cardDescription}
+                                                </p>
+
+                                                {cardUseCases && cardUseCases.length > 0 && (
+                                                    <div className="mb-3">
+                                                        <span className="text-xs font-mono text-text-muted uppercase tracking-widest block mb-1.5">
+                                                            {'// '}use cases
+                                                        </span>
+                                                        <div className="flex flex-wrap gap-1.5">
+                                                            {cardUseCases.map((useCase) => (
+                                                                <span
+                                                                    key={useCase}
+                                                                    className="px-2 py-1 text-xs bg-surface-light border border-border rounded text-text-secondary font-mono"
+                                                                >
+                                                                    {useCase}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {cardRelated && cardRelated.length > 0 && (
+                                                    <div>
+                                                        <span className="text-xs font-mono text-text-muted uppercase tracking-widest block mb-1.5">
+                                                            {'// '}related
+                                                        </span>
+                                                        <div className="flex flex-wrap gap-1.5">
+                                                            {cardRelated.slice(0, 6).map((related) => (
+                                                                <span
+                                                                    key={related}
+                                                                    className="px-2 py-1 text-xs bg-surface-light border border-border rounded text-text-secondary font-mono hover:border-accent hover:text-text-primary cursor-pointer transition-colors"
+                                                                    onClick={() => {
+                                                                        const skill = getSkillByTitle(related)
+                                                                        if (skill) {
+                                                                            const node = graphData.nodes.find(n => n.id === related)
+                                                                            if (node) {
+                                                                                setSelectedNode(node)
+                                                                                setSelectedSkill(skill)
+                                                                                setSelectedHub(null)
+                                                                                zoomToNode(node)
+                                                                            }
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    {related}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {selectedHub && (
+                                                    <div className="mt-2">
+                                                        <span className="text-[9px] font-mono text-text-muted uppercase tracking-widest block mb-1.5">
+                                                            {'// '}skills
+                                                        </span>
+                                                        <span className="text-[10px] text-text-secondary">
+                                                            {getHubSkillCount(selectedHub.id)} skills in this category
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                </motion.div>
+                                    </motion.div>
+                                </>
                             )}
                         </AnimatePresence>
 

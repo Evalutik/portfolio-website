@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
-import { X, Menu } from 'lucide-react'
+import { X, Menu, Home } from 'lucide-react'
 
 const navItems = [
   { label: 'About', href: '#about' },
@@ -114,7 +114,7 @@ export function Navigation() {
               }}
               className="text-sm font-medium text-text-primary hover:text-accent transition-colors"
             >
-              <div className="min-w-[40px] md:min-w-[140px]">
+              <div className="min-w-[40px] md:min-w-[140px] flex items-center">
                 <AnimatePresence mode="wait">
                   {scrolled ? (
                     <motion.span
@@ -126,7 +126,7 @@ export function Navigation() {
                       className="inline-block"
                     >
                       <span className="font-mono hidden md:inline">Andrei Fedyna</span>
-                      <span className="font-mono md:hidden">AF</span>
+                      <Home className="w-4 h-4 md:hidden" />
                     </motion.span>
                   ) : (
                     <motion.span

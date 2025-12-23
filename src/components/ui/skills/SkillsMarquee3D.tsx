@@ -162,6 +162,14 @@ function SkillMarquee({ children, direction = 'left', baseSpeed = 0.055, rowInde
         <div data-set="third" className="flex shrink-0 gap-2">
           {children}
         </div>
+        {/* Fourth set - for ultra-wide screens */}
+        <div data-set="fourth" className="flex shrink-0 gap-2">
+          {children}
+        </div>
+        {/* Fifth set - for ultra-wide screens */}
+        <div data-set="fifth" className="flex shrink-0 gap-2">
+          {children}
+        </div>
       </div>
     </div>
   )

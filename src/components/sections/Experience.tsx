@@ -468,11 +468,17 @@ export function Experience() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: 0.2 }}
             >
-                <p>
+                {/* Desktop text - with keyboard navigation */}
+                <p className="hidden md:block">
                     Browse my work history through this interactive terminal interface.
                     Navigate using the arrow keys <span className="font-mono text-text-primary">↑</span> <span className="font-mono text-text-primary">↓</span> to
                     move between positions, then press <span className="font-mono text-text-primary">⏎</span> to view details about each role.
                     You can also click directly on any item with your mouse.
+                </p>
+                {/* Mobile text - tap to interact */}
+                <p className="md:hidden">
+                    Browse my work history through this interactive terminal.
+                    Tap directly on any position to view details about each role.
                 </p>
                 <p>
                     Select a position to see my responsibilities, achievements, and the impact I made.

@@ -46,13 +46,13 @@ export function Hero() {
   }
 
   return (
-    <section className="relative min-h-screen flex flex-col justify-start md:justify-center py-20 overflow-hidden">
+    <section className="relative min-h-screen flex flex-col justify-center py-20 overflow-hidden">
       {/* Subtle gradient orbs */}
       <div className="gradient-orb w-[600px] h-[600px] bg-primary/20 -top-[200px] -left-[200px] opacity-50" />
       <div className="gradient-orb w-[500px] h-[500px] bg-accent/20 bottom-[10%] -right-[150px] opacity-50" />
 
       {/* Container - responsive layout */}
-      <div className="max-w-3xl mx-auto px-4 w-full relative z-10 mt-16 md:mt-0 md:-mt-20">
+      <div className="max-w-3xl mx-auto px-4 w-full relative z-10 md:-mt-20">
         {/* Text content */}
         <motion.div
           className="text-center md:text-left"
@@ -104,14 +104,33 @@ export function Hero() {
         </motion.div>
       </div>
 
-      {/* Keypad - Mobile: centered, below content */}
+      {/* Mobile: Two CTA buttons instead of Keypad */}
       <motion.div
-        className="md:hidden flex justify-center mt-12 scale-90"
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 0.9 }}
-        transition={{ duration: 0.6, delay: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+        className="md:hidden flex justify-center items-center gap-3 mt-12 px-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
       >
-        <Keypad onMagicClick={handleMagicClick} />
+        <a
+          href="#projects"
+          className="btn-primary-animated text-center px-6 py-3 rounded-lg text-white font-medium text-sm"
+          onClick={(e) => {
+            e.preventDefault()
+            document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' })
+          }}
+        >
+          <span>View Work</span>
+        </a>
+        <a
+          href="#contact"
+          className="btn-secondary-shine text-center px-6 py-3 rounded-lg bg-surface border border-border text-text-primary font-medium text-sm transition-all hover:bg-surface-light hover:border-border-light"
+          onClick={(e) => {
+            e.preventDefault()
+            document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })
+          }}
+        >
+          <span>Contact</span>
+        </a>
       </motion.div>
     </section>
   )
