@@ -2,13 +2,13 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useCallback } from 'react'
-import { SkillConfig, getSkillCategory, getSkillByTitle, CATEGORY_COLORS } from '@/config/skills'
+import { SkillConfigWithExperience, getSkillCategory, getSkillByTitle, CATEGORY_COLORS } from '@/config/skills'
 import { SKILL_WAVE } from '@/config/colors'
 
 interface SkillDetailModalProps {
-  skill: SkillConfig | null
+  skill: SkillConfigWithExperience | null
   onClose: () => void
-  onSkillChange?: (skill: SkillConfig) => void
+  onSkillChange?: (skill: SkillConfigWithExperience) => void
 }
 
 /**
@@ -167,7 +167,7 @@ export function SkillDetailModal({ skill, onClose, onSkillChange }: SkillDetailM
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.2, duration: 0.3 }}
                   >
-                    {skill.experience} experience
+                    {skill.experience}
                   </motion.span>
                 )}
 
@@ -238,7 +238,7 @@ export function SkillDetailModal({ skill, onClose, onSkillChange }: SkillDetailM
                     </h3>
                     <div className="flex flex-wrap gap-2">
                       {skill.relatedTo.slice(0, 6).map((related, index) => (
-                        <motion.span
+                        <motion.button
                           key={related}
                           onClick={() => handleRelatedClick(related)}
                           className="px-2 py-0.5 text-xs bg-surface-light border border-border rounded text-text-secondary font-mono hover:border-accent hover:text-text-primary cursor-pointer transition-colors"
@@ -247,7 +247,7 @@ export function SkillDetailModal({ skill, onClose, onSkillChange }: SkillDetailM
                           transition={{ delay: 0.45 + index * 0.03, duration: 0.2 }}
                         >
                           {related}
-                        </motion.span>
+                        </motion.button>
                       ))}
                     </div>
                   </motion.div>

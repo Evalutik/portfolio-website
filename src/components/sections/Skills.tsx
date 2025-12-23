@@ -7,11 +7,11 @@ import { SkillsMarquee3D } from '@/components/ui/skills/SkillsMarquee3D'
 import { SkillTag } from '@/components/ui/skills/SkillTag'
 import { SkillDetailModal } from '@/components/ui/skills/SkillDetailModal'
 import { SkillGraphModal } from '@/components/ui/skills/SkillGraphModal'
-import { skillRows, getSkillByTitle, SkillConfig, topSkillsGraph } from '@/config/skills'
+import { skillRows, getSkillByTitle, SkillConfigWithExperience, topSkillsGraph } from '@/config/skills'
 
 
 export function Skills() {
-  const [selectedSkill, setSelectedSkill] = useState<SkillConfig | null>(null)
+  const [selectedSkill, setSelectedSkill] = useState<SkillConfigWithExperience | null>(null)
   const [showGraph, setShowGraph] = useState(false)
   const [preloadGraph, setPreloadGraph] = useState(false)
   const sectionRef = useRef<HTMLElement>(null)
@@ -41,12 +41,12 @@ export function Skills() {
     }
   }
 
-  const handleGraphSkillClick = (skill: SkillConfig) => {
+  const handleGraphSkillClick = (skill: SkillConfigWithExperience) => {
     setSelectedSkill(skill)
   }
 
   // Handle skill change from related skills - close then reopen with animation
-  const handleSkillChange = useCallback((newSkill: SkillConfig) => {
+  const handleSkillChange = useCallback((newSkill: SkillConfigWithExperience) => {
     // Close current modal
     setSelectedSkill(null)
     // Wait for close animation to complete, then open new skill

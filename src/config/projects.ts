@@ -46,7 +46,7 @@ export const allProjects: ProjectConfig[] = [
 The architecture intentionally avoids heavy vector databases in favor of a lightweight TF-IDF retriever using scikit-learn. For code generation, I found that exact keyword matching for field names and enum values often yields better context than semantic similarity. The retriever identifies the three most relevant reference configs, which surround the user's prompt. Reliability is enforced by passing the LLM's output through a strict \`jsonschema\` validator. If the generated JSON fails validation (missing required fields or wrong types), the system catches it immediately rather than shipping broken config to production.
 
 This project taught me that for specialized code tasks, a rigid validation loop is far more important than a smarter model. Grounding the LLM in valid examples and constraining it with a schema turned a localized problem into a reliable utility.`,
-        tech: ['Python', 'Flask', 'OpenAI API', 'Scikit-learn', 'JSON Schema'],
+        tech: ['Python', 'Flask', 'RAG Systems', 'Scikit-learn', 'Prompt Engineering'],
         isPrivate: false,
         github: 'https://github.com/Evalutik/workflow-assistant-rag',
     },
@@ -56,15 +56,13 @@ This project taught me that for specialized code tasks, a rigid validation loop 
         fileName: 'agent-reviewer.md',
         folder: 'llm-engineering',
         summary: 'Autonomous LLM agents collaborating on code analysis',
-        description: `Multiple LLM agents that review code from different angles: security, performance, and style. Each agent has access to tools like Semgrep for security patterns and explain-plan queries for SQL performance. The orchestrator collects findings and removes duplicates before presenting a unified review.
+        description: `Built a multi-agent system where specialized LLM agents review code from different perspectives: security vulnerabilities, performance bottlenecks, and code style issues. Each agent has access to static analysis tools and can query databases for known vulnerability patterns. The orchestrator aggregates findings and applies deduplication logic.
 
-Tool calling required strict validation. GPT-4 sometimes invents parameters that don't exist, so every tool input goes through Pydantic schemas that reject malformed calls. State checkpoints in LangGraph let the system resume if an agent times out mid-review.
+The key challenge was preventing agents from producing hallucinated tool calls. By enforcing strict Pydantic schemas on all tool inputs and outputs, malformed calls get rejected before execution. LangChain's agent framework handles the conversation flow, while Redis provides state checkpointing for long-running reviews.
 
-The tricky part was preventing agents from repeating each other. Each finding gets tagged with category and severity, then the orchestrator applies deduplication rules. If two agents flag the same line for related reasons, only the more specific finding survives.
-
-I learned that agent reliability comes from structured outputs, not clever prompts. Switching from free-form text to enforced JSON schemas cut error rates dramatically.`,
-        tech: ['Python', 'LangGraph', 'OpenAI API', 'GitHub API', 'Redis', 'Docker'],
-        isPrivate: false,
+Deduplication was trickier than expected. Multiple agents often flag the same code issue from different angles. The system tags each finding with category, severity, and affected line range, then applies merging rules to keep only the most specific finding when duplicates exist.`,
+        tech: ['Python', 'LangChain', 'Prompt Engineering', 'Git', 'Redis', 'Docker'],
+        isPrivate: true,
         github: '#',
     },
     {
@@ -73,13 +71,13 @@ I learned that agent reliability comes from structured outputs, not clever promp
         fileName: 'llm-eval.md',
         folder: 'llm-engineering',
         summary: 'Systematic evaluation with LLM-as-judge and drift detection',
-        description: `An evaluation framework for LLM applications that goes beyond "looks good to me" testing. Three evaluation types: golden dataset tests with ground truth labels, LLM-as-judge for subjective qualities like helpfulness, and regression tests comparing new versions against production baselines.
+        description: `Created an evaluation framework for LLM applications that goes beyond manual testing. The system supports three evaluation modes: golden dataset tests with ground truth labels, LLM-as-judge for subjective quality assessment, and regression tests comparing new model versions against production baselines.
 
-LLM-as-judge needs careful prompting. Asking "rate this 1-10" gives noisy scores. I improved consistency by providing rubrics with specific criteria for each score level and requiring the judge to explain its reasoning before scoring. Production monitoring samples 5% of requests, runs them through a lightweight evaluator, and alerts on Slack when quality drops.
+For LLM-as-judge consistency, I developed rubrics with specific criteria for each score level and require the evaluator to explain reasoning before scoring. Weights & Biases tracks all experiment runs, enabling easy comparison across prompt iterations and model versions.
 
-The whole thing integrates with GitHub Actions. PRs that touch prompts run the eval suite automatically, and the PR comment shows metrics diff. This project taught me that eval-driven development works: define expected behavior first, then iterate until you pass.`,
-        tech: ['Python', 'Weights & Biases', 'Prometheus', 'PostgreSQL', 'GitHub Actions'],
-        isPrivate: false,
+Production monitoring samples a percentage of live requests and runs them through lightweight evaluators. Prometheus metrics track quality scores over time, with Grafana dashboards showing drift alerts. The whole pipeline integrates with CI/CD so prompt changes automatically trigger evaluation runs.`,
+        tech: ['Python', 'Weights & Biases', 'Prometheus', 'PostgreSQL', 'CI/CD', 'Grafana'],
+        isPrivate: true,
         github: '#',
     },
 
@@ -92,14 +90,12 @@ The whole thing integrates with GitHub Actions. PRs that touch prompts run the e
         fileName: 'feature-store.md',
         folder: 'ml-infrastructure',
         summary: 'Online/offline feature serving with point-in-time correctness',
-        description: `A feature store that solves training-serving skew. Models trained on batch-computed features but served with slightly different online values, causing silent performance degradation.
+        description: `Implemented a feature store to eliminate training-serving skew that was silently degrading model performance. The offline path uses Apache Spark for computing historical features with point-in-time joins, ensuring models only see data that was available at prediction time.
 
-The offline path uses Spark for historical features with point-in-time joins. If you train a churn model for January 1st, it only sees data available before that date. The online path uses Redis for sub-millisecond lookups. Batch features get pushed to Redis on schedule; real-time features stream through Kafka.
+The online serving layer uses Redis for sub-millisecond feature lookups. Batch features get pushed to Redis on schedule via Apache Airflow, while real-time features stream through Apache Kafka. Feature definitions live in a registry with metadata about source tables, transformation logic, and freshness SLAs.
 
-Feature definitions live in a Feast registry with metadata about source, transformation logic, owner, and freshness SLA. Teams can discover and reuse features instead of rebuilding them. Lineage tracking records which tables feed which features, so upstream data issues can be traced to affected predictions.
-
-This project showed me that feature engineering is still the highest-leverage ML work. A good feature store doesn't replace domain expertise; it makes experimentation faster.`,
-        tech: ['Python', 'Feast', 'Redis', 'PostgreSQL', 'Apache Spark', 'Airflow'],
+Teams can discover and reuse features instead of rebuilding them from scratch. Lineage tracking records which upstream tables feed which features, so data quality issues can be traced to affected model predictions.`,
+        tech: ['Python', 'Feature Stores', 'Redis', 'PostgreSQL', 'Apache Spark', 'Apache Airflow'],
         isPrivate: true,
     },
     {
@@ -108,15 +104,13 @@ This project showed me that feature engineering is still the highest-leverage ML
         fileName: 'model-serving.md',
         folder: 'ml-infrastructure',
         summary: 'Canary deployments, shadow testing, and automatic rollback',
-        description: `A model serving platform because deploying ML is not like deploying regular software. Models degrade silently. The only way to know is monitoring production predictions.
+        description: `Built a model serving platform that treats ML deployments as first-class citizens. Canary releases gradually shift traffic to new models, automatically rolling back if error rates or latency spike. Shadow mode runs new models on production traffic without serving predictions for safe offline comparison.
 
-Canary releases send 5% of traffic to the new model. If error rates or latency spike, automatically roll back. Shadow mode runs new models on production traffic without serving predictions, just logging for offline comparison. A/B tests use sticky user assignments so people don't see different model behavior mid-session.
+The inference layer uses FastAPI with GPU batching to maximize throughput. Requests accumulate in a short buffer window before processing together, significantly improving GPU utilization over sequential processing. Kubernetes handles scaling and failover.
 
-Inference uses FastAPI with GPU batching. Requests accumulate in a 10ms buffer, then process together. This improves GPU utilization significantly over one-at-a-time processing. Prometheus tracks p50/p95/p99 latency, prediction distributions, and drift metrics.
-
-I learned that model quality gets all the attention, but reliability and latency determine whether models create value.`,
-        tech: ['Python', 'FastAPI', 'Kubernetes', 'Seldon Core', 'Prometheus', 'Grafana'],
-        isPrivate: false,
+Prometheus and Grafana power the observability stack, tracking p50/p95/p99 latency, prediction distribution shifts, and data drift metrics. A/B tests use sticky user assignments to ensure consistent model behavior throughout user sessions.`,
+        tech: ['Python', 'FastAPI', 'Kubernetes', 'Model Serving', 'Prometheus', 'Grafana'],
+        isPrivate: true,
         github: '#',
     },
     {
@@ -125,15 +119,13 @@ I learned that model quality gets all the attention, but reliability and latency
         fileName: 'ml-cicd.md',
         folder: 'ml-infrastructure',
         summary: 'Automated testing, validation, and model promotion',
-        description: `CI/CD for machine learning. The team was stuck with manual deployments, broken notebooks, and "works on my machine" issues.
+        description: `Designed a CI/CD pipeline specifically for machine learning workflows. The pipeline has four stages: data validation with Great Expectations catches drift before it corrupts training, model training runs in Docker containers with DVC-tracked datasets, evaluation compares metrics against production baselines, and promotion pushes passing models to the MLflow registry.
 
-Four stages: data validation with Great Expectations catches drift before it pollutes training. Model training runs in Docker with pinned dependencies and DVC-tracked data. Evaluation compares new models against production baselines. Promotion pushes passing models to MLflow registry.
+Tests are split into unit tests for feature transformation functions, integration tests on sample data, and model quality tests checking that key metrics don't regress. Making tests deterministic required careful seeding of random generators and testing metric ranges rather than exact values.
 
-Tests split into unit tests for feature functions, integration tests on sample data, and model quality tests checking that AUC doesn't regress. Making tests deterministic was tricky since ML has inherent randomness. I seed random generators and test metric ranges rather than exact values.
-
-This convinced me MLOps is not optional. It's the difference between a notebook demo and a system that creates business value.`,
-        tech: ['Python', 'GitHub Actions', 'DVC', 'MLflow', 'Great Expectations', 'Docker'],
-        isPrivate: false,
+The pipeline runs on every PR that touches model code or training configs. GitHub Actions orchestrates the workflow, with clear pass/fail signals and metric diffs posted directly to PR comments.`,
+        tech: ['Python', 'CI/CD', 'DVC', 'MLflow', 'Great Expectations', 'Docker'],
+        isPrivate: true,
         github: '#',
     },
 
@@ -146,14 +138,12 @@ This convinced me MLOps is not optional. It's the difference between a notebook 
         fileName: 'fraud-detection.md',
         folder: 'real-time-systems',
         summary: 'Sub-100ms inference with streaming feature aggregation',
-        description: `Fraud detection that scores transactions within 100ms. Beyond that, the payment gateway times out. This constraint eliminates fancy approaches and forces careful latency management.
+        description: `Built a fraud detection system that scores transactions within 100ms end-to-end. Apache Kafka handles event ingestion, while Apache Flink computes streaming features like transaction velocity and deviation from user spending patterns. Static features live in Redis for fast lookups.
 
-Kafka handles event ingestion, Flink computes streaming features. Static features (account age, lifetime count) live in Redis. Dynamic features (transactions in last 5 minutes) use Flink windowed aggregations with RocksDB state. Late-arriving events get 30 seconds tolerance via watermarks.
+The model uses gradient boosting (trained with Scikit-learn) because tree models are fast at inference and handle tabular data well. Features capture transaction velocity, merchant risk signals, and behavioral anomalies compared to user history.
 
-The model is XGBoost trained on historical labeled transactions. Tree models are fast and handle tabular data well. Features capture velocity, deviation from user history, and merchant risk signals.
-
-The biggest lesson: real-time ML is an engineering challenge first. Getting Kafka partitions, Flink parallelism, and Redis connection pooling right mattered more than model choice.`,
-        tech: ['Python', 'Apache Kafka', 'Apache Flink', 'Redis', 'XGBoost', 'Docker'],
+Late-arriving events are handled with Flink watermarks that allow a 30-second tolerance window. The biggest lesson was that real-time ML is primarily an engineering challenge. Getting Kafka partitioning, Flink parallelism, and Redis connection pooling right mattered more than model architecture choices.`,
+        tech: ['Python', 'Apache Kafka', 'Apache Flink', 'Redis', 'Scikit-learn', 'Docker'],
         isPrivate: true,
     },
     {
@@ -162,15 +152,13 @@ The biggest lesson: real-time ML is an engineering challenge first. Getting Kafk
         fileName: 'realtime-recsys.md',
         folder: 'real-time-systems',
         summary: 'Personalized rankings updating instantly with user signals',
-        description: `A recommendation system that responds to user behavior immediately. The problem with batch recommenders: you buy running shoes, and the site recommends running shoes for the next 24 hours.
+        description: `Created a recommendation system that responds to user behavior in real-time. Batch-trained embeddings from a two-tower TensorFlow model get indexed in FAISS for fast approximate nearest-neighbor retrieval. Real-time personalization happens in the re-ranking layer.
 
-Batch-trained embeddings from a two-tower model get indexed in Faiss for fast nearest-neighbor retrieval. Real-time personalization happens in re-ranking: user clicks stream through Kafka to update a short-term profile in Redis. When serving, candidates come from Faiss, then scores adjust based on recent interactions.
+User interaction events stream through Apache Kafka to update short-term preference profiles stored in Redis. When serving recommendations, candidates come from FAISS, then scores adjust based on recent clicks and category interactions. The re-ranker is intentionally simple to stay within latency budget.
 
-The re-ranker is intentionally simple (linear model) to stay within latency budget. Features: similarity to recent views, time since category interaction, inventory freshness. Cold-start users get popularity-based results filtered by context.
-
-I learned that explore-exploit balance is a constant tuning problem. Showing only what users will definitely like leads to filter bubbles. Diversity often beats precision for long-term engagement.`,
-        tech: ['Python', 'TensorFlow', 'Faiss', 'Kafka', 'Redis', 'FastAPI'],
-        isPrivate: false,
+Cold-start users get popularity-based results filtered by context signals. The FastAPI serving layer handles request routing and A/B test assignment. Balancing exploration vs exploitation required constant tuning—showing only high-confidence items leads to filter bubbles.`,
+        tech: ['Python', 'TensorFlow', 'FAISS', 'Apache Kafka', 'Redis', 'FastAPI'],
+        isPrivate: true,
         github: '#',
     },
 
@@ -183,15 +171,13 @@ I learned that explore-exploit balance is a constant tuning problem. Showing onl
         fileName: 'distributed-kv.md',
         folder: 'systems-engineering',
         summary: 'Consistent hashing, replication, and failure handling',
-        description: `A distributed key-value store to understand how DynamoDB and Cassandra work. Reading papers is one thing; building forces you to handle every edge case.
+        description: `Built a distributed key-value store from scratch to deeply understand systems like DynamoDB and Cassandra. Consistent hashing with virtual nodes partitions data across the cluster. Each key hashes to a ring position, and walking clockwise identifies responsible nodes.
 
-Consistent hashing with virtual nodes partitions data. Each key hashes to a position on the ring; walk clockwise to find responsible nodes. Writes go to N replicas (default 3). Quorum configuration (W + R > N) ensures consistency at availability cost during partitions.
+Writes replicate to N nodes (configurable, default 3). Quorum configuration ensures consistency at the cost of availability during network partitions. Vector clocks track causality for conflict resolution when replicas diverge. A gossip protocol handles failure detection through random peer pinging.
 
-Vector clocks track causality for conflict resolution. When replicas diverge, the clock shows whether one supersedes another or they're truly concurrent. Gossip protocol handles failure detection: nodes ping random peers and share health info. Failed nodes trigger rebalancing.
-
-This gave me real appreciation for the CAP theorem. Every design trades off consistency, availability, and partition tolerance. Understanding these tradeoffs makes me a better user of distributed systems.`,
-        tech: ['Go', 'gRPC', 'Protocol Buffers', 'Docker Compose', 'etcd'],
-        isPrivate: false,
+The implementation uses Go for its excellent concurrency primitives and gRPC for inter-node communication. Docker Compose enables local multi-node testing. This project gave me real appreciation for CAP theorem tradeoffs in practice.`,
+        tech: ['Go', 'REST APIs', 'Docker', 'Linux', 'Data Structures'],
+        isPrivate: true,
         github: '#',
     },
     {
@@ -200,15 +186,13 @@ This gave me real appreciation for the CAP theorem. Every design trades off cons
         fileName: 'query-engine.md',
         folder: 'systems-engineering',
         summary: 'SQL parser, optimizer, and columnar execution',
-        description: `Built a query engine that parses SQL, optimizes query plans, and executes against Parquet files. The motivation was curiosity: how does a database turn "SELECT * FROM users WHERE age > 25" into actual data?
+        description: `Built a query engine that parses SQL, optimizes query plans, and executes against columnar Parquet files. The parser uses recursive descent to build an abstract syntax tree supporting SELECT, WHERE, JOINs, GROUP BY, and ORDER BY clauses.
 
-The parser uses recursive descent to build an abstract syntax tree. I support a SQL subset: SELECT, WHERE, JOINs, GROUP BY, ORDER BY. Query optimization applies rewrite rules to the logical plan. Predicate pushdown moves filters earlier, projection pruning drops unused columns, and join reordering uses simple heuristics.
+Query optimization applies rewrite rules to the logical plan: predicate pushdown moves filters closer to data sources, projection pruning eliminates unused columns, and join reordering uses cost-based heuristics. The physical plan uses the volcano execution model where each operator implements open/next/close.
 
-Execution follows the volcano model: each operator implements open/next/close. Scan reads Parquet row groups, filter drops non-matching rows, hash join builds a hash table on one side and probes with the other. Vectorized processing handles 1024 rows per batch instead of one at a time.
-
-Building this demystified databases. They're not magic; they're carefully engineered systems with clean abstractions.`,
-        tech: ['Rust', 'Apache Arrow', 'Parquet', 'sqlparser'],
-        isPrivate: false,
+Written in Rust for performance and memory safety. Apache Arrow provides the in-memory columnar format, enabling vectorized processing of 1024-row batches instead of row-at-a-time execution. This project demystified how databases turn SQL text into efficient data retrieval.`,
+        tech: ['Rust', 'SQL', 'Data Structures', 'Design Patterns', 'Linux'],
+        isPrivate: true,
         github: '#',
     },
     {
@@ -217,15 +201,13 @@ Building this demystified databases. They're not magic; they're carefully engine
         fileName: 'mini-k8s.md',
         folder: 'systems-engineering',
         summary: 'Scheduling, health checks, and service discovery',
-        description: `A mini container orchestrator to understand what happens when you run kubectl apply.
+        description: `Created a mini container orchestrator to understand what happens when you run kubectl apply. The scheduler assigns containers to nodes based on available CPU and memory, using bin-packing heuristics to optimize resource utilization.
 
-The scheduler assigns containers to nodes based on resources. Nodes report available CPU and memory. Requests get filtered to capable nodes, then scored by bin-packing fit. Health checks implement liveness probes (restart crashed containers) and readiness probes (remove from load balancing if not ready). HTTP, TCP, and exec probes all work.
+Health checking implements liveness probes (restart crashed containers) and readiness probes (remove unhealthy pods from load balancing). HTTP, TCP, and exec probe types are all supported. Service discovery uses DNS—each service gets a name that resolves to healthy pod IPs, with records updating automatically as pods scale.
 
-Service discovery uses DNS. Each service gets a name that resolves to healthy pod IPs. Records update automatically as pods come and go. State lives in etcd with watch-based controllers that reconcile desired versus actual state.
-
-This turned Kubernetes from black box to understandable system. I can't claim to fully know it, but I can reason about its behavior now.`,
-        tech: ['Go', 'Docker API', 'etcd', 'gRPC', 'Linux networking'],
-        isPrivate: false,
+Built in Go using the Docker API for container lifecycle management. State synchronization follows a controller pattern that continuously reconciles desired vs actual state. This turned Kubernetes from a black box into an understandable system I can reason about.`,
+        tech: ['Go', 'Docker', 'Kubernetes', 'REST APIs', 'Linux'],
+        isPrivate: true,
         github: '#',
     },
 ]

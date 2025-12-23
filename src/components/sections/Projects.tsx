@@ -8,12 +8,12 @@ import { FileTree } from '@/components/ui/projects/FileTree'
 import { Button } from '@/components/ui/common/Button'
 import { SkillDetailModal } from '@/components/ui/skills/SkillDetailModal'
 import { getProjectsByFolder, allProjects, ProjectConfig } from '@/config/projects'
-import { getSkillByTitle, SkillConfig } from '@/config/skills'
+import { getSkillByTitle, SkillConfigWithExperience } from '@/config/skills'
 
 export function Projects() {
   const folders = useMemo(() => getProjectsByFolder(), [])
   const [selectedProject, setSelectedProject] = useState<ProjectConfig>(allProjects[0])
-  const [selectedSkill, setSelectedSkill] = useState<SkillConfig | null>(null)
+  const [selectedSkill, setSelectedSkill] = useState<SkillConfigWithExperience | null>(null)
 
   const handleSelect = (project: ProjectConfig) => {
     setSelectedProject(project)
@@ -24,6 +24,14 @@ export function Projects() {
     if (skill) {
       setSelectedSkill(skill)
     }
+  }
+
+  // Handle skill change from related skills in the modal
+  const handleSkillChange = (newSkill: SkillConfigWithExperience) => {
+    setSelectedSkill(null)
+    setTimeout(() => {
+      setSelectedSkill(newSkill)
+    }, 300)
   }
 
   return (
@@ -173,6 +181,7 @@ export function Projects() {
       <SkillDetailModal
         skill={selectedSkill}
         onClose={() => setSelectedSkill(null)}
+        onSkillChange={handleSkillChange}
       />
     </section >
   )

@@ -6,8 +6,8 @@ import { SmoothScroll } from '@/components/providers/SmoothScroll'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Portfolio - AI Engineer & Computer Scientist',
-  description: 'Modern portfolio website showcasing projects, skills, and expertise',
+  title: 'Andrey | AI Architect & Engineer',
+  description: 'Professional portfolio of an AI Architect & Computer Scientist',
 }
 
 export default function RootLayout({

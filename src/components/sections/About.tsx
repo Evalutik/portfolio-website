@@ -5,10 +5,25 @@ import { motion } from 'framer-motion'
 import { SectionHeading } from '@/components/ui/common/SectionHeading'
 import { TextReveal } from '@/components/ui/effects/TextReveal'
 
+// Calculate age dynamically to show "20-year-old" etc.
+const BIRTH_DATE = '2005-07'
+
+function calculateAge(startDate: string): number {
+  const [year, month] = startDate.split('-').map(Number)
+  const start = new Date(year, month - 1)
+  const now = new Date()
+
+  const totalMonths = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth())
+  const years = Math.floor(totalMonths / 12)
+  return years
+}
+
+const age = calculateAge(BIRTH_DATE)
+
 const PARAGRAPHS = [
-  "I build robust data pipelines and intelligent systems that transform raw data into actionable insights. With experience across machine learning, distributed systems, and cloud infrastructure, I focus on creating solutions that are both scalable and maintainable.",
-  "My background spans academia and industry, where I've developed expertise in ETL processes, real-time analytics, and deploying ML models to production. I believe in writing clean, well-documented code and designing systems that can evolve with business needs.",
-  "Currently focused on building data platforms that enable organizations to make data-driven decisions with confidence.",
+  `I'm Andrei, a ${age}-year-old AI Architect, MLOps Engineer, and Software Developer. This website is my interactive business card and I hope you will like it!`,
+  "I combine deep mathematical foundations with rigorous systems engineering to build intelligent architectures that solve real-world problems. My expertise covers the full lifecycle, from designing custom neural networks to orchestrating distributed cloud infrastructure. I focus on creating resilient ecosystems where machine learning models integrate seamlessly with robust, scalable software.",
+  "I am driven by a hunger for difficult problems and a constant desire to evolve. Whether exploring abstract mathematics or leading a technical initiative, I bring creativity and purpose to my work. I am ready to join a team that moves fast and builds something meaningful."
 ]
 
 export function About() {
@@ -24,7 +39,7 @@ export function About() {
     <section id="about" className="py-16 px-4 max-w-3xl mx-auto">
       <SectionHeading
         title="About"
-        subtitle="Data engineer specializing in scalable data infrastructure and ML systems."
+        subtitle="Bridging the gap between mathematical theory and rigorous systems engineering."
       />
 
       <motion.div

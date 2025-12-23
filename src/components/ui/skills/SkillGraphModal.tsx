@@ -9,6 +9,7 @@ import {
     getSkillCategory,
     getSkillByTitle,
     SkillConfig,
+    SkillConfigWithExperience,
     graphHubs,
     categoryToHub,
     GraphHub,
@@ -32,7 +33,7 @@ const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), { ssr: false 
 interface SkillGraphModalProps {
     isOpen: boolean
     onClose: () => void
-    onSkillClick: (skill: SkillConfig) => void
+    onSkillClick: (skill: SkillConfigWithExperience) => void
     preloadMode?: boolean // When true, renders graph hidden for preloading without UI effects
 }
 
@@ -93,7 +94,7 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick, preloadMode = f
     const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
     const [nodeVisibility, setNodeVisibility] = useState<Record<string, number>>({})
     const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null)
-    const [selectedSkill, setSelectedSkill] = useState<SkillConfig | null>(null)
+    const [selectedSkill, setSelectedSkill] = useState<SkillConfigWithExperience | null>(null)
     const [selectedHub, setSelectedHub] = useState<GraphHub | null>(null)
     const [hoveredNode, setHoveredNode] = useState<GraphNode | null>(null)
     const [showWelcome, setShowWelcome] = useState(false)
@@ -502,8 +503,18 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick, preloadMode = f
             })
 
         fgRef.current.d3Force('charge').strength(-200)
+
+        // Pin the main hub to center by fixing its position on each tick
+        // This gives the main hub "weight" so it doesn't move as much
+        const mainHub = graphData.nodes.find(n => n.id === 'hub-skills')
+        if (mainHub) {
+            // Fix main hub position to (0, 0)
+            (mainHub as any).fx = 0;
+            (mainHub as any).fy = 0;
+        }
+
         fgRef.current.d3ReheatSimulation()
-    }, [])
+    }, [graphData.nodes])
 
     // Handle escape key and hot typing
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -726,10 +737,11 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick, preloadMode = f
                             {/* Close Button */}
                             <button
                                 onClick={onClose}
-                                className={`${panelClass} px-1.5 py-1.5 self-stretch flex items-center hover:bg-surface-light hover:border-border-light transition-all duration-200`}
+                                className={`${panelClass} px-1.5 md:px-2.5 py-1.5 self-stretch flex items-center gap-1.5 hover:bg-surface-light hover:border-border-light transition-all duration-200`}
                                 title="Close"
                             >
-                                <X className="w-3.5 h-3.5 text-text-muted" />
+                                <X className="w-3.5 h-3.5 text-text-muted md:hidden" />
+                                <span className="hidden md:block text-xs text-text-muted">Close</span>
                             </button>
                         </div>
 
