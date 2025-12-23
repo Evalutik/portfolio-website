@@ -18,9 +18,9 @@ interface FileTreeProps {
  * Realistic styling with vertical guide lines and proper selection states.
  */
 export function FileTree({ folders, selectedId, onSelect }: FileTreeProps) {
-    // Track which folders are expanded
+    // Track which folders are expanded - only first folder open by default
     const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
-        new Set(folders.map(f => f.name)) // All expanded by default
+        new Set(folders.length > 0 ? [folders[0].name] : [])
     )
 
     const toggleFolder = (folderName: string) => {

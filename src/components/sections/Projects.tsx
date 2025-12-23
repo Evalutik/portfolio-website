@@ -30,7 +30,7 @@ export function Projects() {
     <section id="projects" className="py-16 px-4 max-w-3xl mx-auto">
       <SectionHeading
         title="Projects"
-        subtitle="Browse the directory tree and select a project to inspect its details."
+        subtitle="A selection of featured work: browse the directory tree and select a project to inspect its details."
       />
 
       <motion.div
