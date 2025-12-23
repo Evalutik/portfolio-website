@@ -511,3 +511,25 @@ export const skillRows: SkillRow[] = [
   { skills: cloudSkills, direction: 'right' },
   { skills: mlAnalyticsSkills, direction: 'left' },
 ]
+
+// =============================================================================
+// TOP SKILLS GRAPH CONFIGURATION
+// Displayed in the Skills section with percentage bars
+// =============================================================================
+
+export interface TopSkillConfig {
+  label: string
+  level: number  // 0-100 percentage
+}
+
+/**
+ * Top expertise areas with proficiency levels
+ * These are displayed as progress bars in the Skills section
+ */
+export const topSkillsGraph: TopSkillConfig[] = [
+  { label: 'Data Engineering', level: 95 },
+  { label: 'Python / SQL', level: 92 },
+  { label: 'Cloud Platforms', level: 88 },
+  { label: 'Machine Learning', level: 85 },
+  { label: 'System Design', level: 82 },
+]

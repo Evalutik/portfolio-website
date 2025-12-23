@@ -125,7 +125,7 @@ export function CVDownloadModal({ isOpen, onClose }: CVDownloadModalProps) {
             // Close modal after ripple animation
             setTimeout(() => {
                 onClose()
-            }, 1400)
+            }, 1600)
         }
     }, [onClose])
 
@@ -203,9 +203,9 @@ export function CVDownloadModal({ isOpen, onClose }: CVDownloadModalProps) {
 
     // Supernova ripple configuration - staggered for wave effect
     const rippleCircles = [
-        { delay: 0, opacity: 0.85 },      // Inner - first, most visible
-        { delay: 0.12, opacity: 0.65 },   // Middle - follows
-        { delay: 0.24, opacity: 0.45 },   // Outer - trails behind
+        { delay: 0, opacity: 0.68 },      // Inner - first, most visible (was 0.85)
+        { delay: 0.12, opacity: 0.52 },   // Middle - follows (was 0.65)
+        { delay: 0.24, opacity: 0.36 },   // Outer - trails behind (was 0.45)
     ]
 
     return (
@@ -251,10 +251,10 @@ export function CVDownloadModal({ isOpen, onClose }: CVDownloadModalProps) {
                                             opacity: [0, circle.opacity, circle.opacity * 1.1, 0],
                                         }}
                                         transition={{
-                                            duration: 1.4,
+                                            duration: 1.2,
                                             delay: circle.delay,
-                                            // Time distribution: 40% compress, 15% hold, 45% explode
-                                            times: [0, 0.40, 0.55, 1],
+                                            // Time distribution: 40% compress, 20% hold, 40% explode (faster)
+                                            times: [0, 0.40, 0.60, 1],
                                             // Easing: slow start for anticipation, fast end for power
                                             ease: ['easeOut', 'linear', 'easeIn'],
                                         }}
@@ -267,12 +267,13 @@ export function CVDownloadModal({ isOpen, onClose }: CVDownloadModalProps) {
                                     style={{ zIndex: 10 }}
                                     initial={{ opacity: 0, scale: 0.5 }}
                                     animate={{
-                                        opacity: [0, 1, 1, 0],
-                                        scale: [0.5, 1, 1, 1.5],
+                                        opacity: [0, 1, 1, 1, 0],
+                                        scale: [0.5, 1, 1, 1.2, 1.5],
                                     }}
                                     transition={{
-                                        duration: 1.2,
-                                        times: [0, 0.25, 0.6, 1],
+                                        duration: 1.5,
+                                        // Icon appears early, stays visible, then fades AFTER circles
+                                        times: [0, 0.2, 0.5, 0.85, 1],
                                         ease: 'easeOut',
                                     }}
                                 >

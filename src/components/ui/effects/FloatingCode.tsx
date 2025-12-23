@@ -13,7 +13,7 @@ const codeSnippets = [
   Dropout(0.3),
   Dense(10, activation='softmax')
 ])`,
-    position: { side: 'left' as const, top: '15%' },
+    position: { side: 'left' as const, top: '20%' },
   },
   {
     id: 2,
@@ -23,7 +23,7 @@ model.compile(
   loss='categorical_crossentropy',
   metrics=['accuracy']
 )`,
-    position: { side: 'right' as const, top: '25%' },
+    position: { side: 'right' as const, top: '35%' },
   },
   {
     id: 3,
@@ -32,7 +32,7 @@ model.compile(
 df_clean = df.dropna()
   .filter(col("value") > 0)
   .groupBy("category")`,
-    position: { side: 'left' as const, top: '40%' },
+    position: { side: 'left' as const, top: '50%' },
   },
   {
     id: 4,
@@ -43,7 +43,7 @@ WHERE epoch = (
   SELECT MAX(epoch)
   FROM model_runs
 )`,
-    position: { side: 'right' as const, top: '55%' },
+    position: { side: 'right' as const, top: '25%' },
   },
   {
     id: 5,
@@ -53,7 +53,7 @@ WHERE epoch = (
   ('pca', PCA(n_components=50)),
   ('clf', RandomForest())
 ])`,
-    position: { side: 'left' as const, top: '65%' },
+    position: { side: 'left' as const, top: '40%' },
   },
   {
     id: 6,
@@ -63,9 +63,70 @@ WHERE epoch = (
   batch_size=32,
   show_progress=True
 )`,
-    position: { side: 'right' as const, top: '80%' },
+    position: { side: 'right' as const, top: '55%' },
+  },
+  // New AI snippets - appearing in last portion of scroll
+  {
+    id: 7,
+    language: 'python',
+    code: `attention = softmax(
+  Q @ K.T / sqrt(d_k)
+) @ V
+output = self.proj(attention)`,
+    position: { side: 'left' as const, top: '30%' },
+  },
+  {
+    id: 8,
+    language: 'python',
+    code: `results = vector_db.search(
+  query_embedding,
+  top_k=10,
+  filter={"type": "document"}
+)`,
+    position: { side: 'right' as const, top: '45%' },
+  },
+  {
+    id: 9,
+    language: 'python',
+    code: `async for chunk in llm.stream(
+  prompt,
+  temperature=0.7,
+  max_tokens=2048
+):
+  yield chunk.text`,
+    position: { side: 'left' as const, top: '60%' },
+  },
+  {
+    id: 10,
+    language: 'python',
+    code: `gradients = tape.gradient(
+  loss, model.trainable_vars
+)
+optimizer.apply_gradients(
+  zip(gradients, vars)
+)`,
+    position: { side: 'right' as const, top: '20%' },
+  },
+  {
+    id: 11,
+    language: 'python',
+    code: `reward = reward_model(
+  chosen, rejected
+)
+loss = -log_sigmoid(reward)`,
+    position: { side: 'left' as const, top: '45%' },
+  },
+  {
+    id: 12,
+    language: 'python',
+    code: `multimodal = encode(
+  image=vision_tower(img),
+  text=tokenizer(prompt)
+)`,
+    position: { side: 'right' as const, top: '35%' },
   },
 ]
+
 
 interface TypewriterCodeProps {
   code: string
@@ -179,11 +240,12 @@ function TypewriterCode({
  */
 export function FloatingCode() {
   // Memoize snippet configs to prevent re-renders
+  // With 12 snippets, use smaller intervals: 0.05 + index * 0.075, duration 0.12
   const snippetConfigs = useMemo(() =>
     codeSnippets.map((snippet, index) => ({
       ...snippet,
-      triggerStart: 0.05 + index * 0.14,
-      triggerEnd: 0.05 + index * 0.14 + 0.18,
+      triggerStart: 0.03 + index * 0.075,
+      triggerEnd: 0.03 + index * 0.075 + 0.12,
     })),
     [])
 

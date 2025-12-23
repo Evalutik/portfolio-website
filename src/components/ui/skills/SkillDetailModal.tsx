@@ -27,20 +27,45 @@ export function SkillDetailModal({ skill, onClose, onSkillChange }: SkillDetailM
   }, [onClose])
 
   useEffect(() => {
-    if (skill) {
-      // Get scrollbar width before hiding
-      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
-      document.body.style.overflow = 'hidden'
-      document.documentElement.style.overflow = 'hidden'
-      // Add padding to compensate for scrollbar disappearing
-      document.body.style.paddingRight = `${scrollbarWidth}px`
-      window.addEventListener('keydown', handleKeyDown)
+    if (!skill) return
+
+    // Prevent scroll events
+    const preventScroll = (e: Event) => {
+      e.preventDefault()
+      e.stopPropagation()
+      return false
     }
+
+    // Prevent keyboard scroll
+    const preventKeyScroll = (e: KeyboardEvent) => {
+      const scrollKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'PageUp', 'PageDown', 'Home', 'End']
+      if (scrollKeys.includes(e.code)) {
+        e.preventDefault()
+      }
+    }
+
+    // Add event listeners
+    window.addEventListener('wheel', preventScroll, { passive: false, capture: true })
+    window.addEventListener('touchmove', preventScroll, { passive: false, capture: true })
+    window.addEventListener('scroll', preventScroll, { passive: false, capture: true })
+    window.addEventListener('keydown', preventKeyScroll, { capture: true })
+    window.addEventListener('keydown', handleKeyDown)
+
+    // Also set styles to hide scrollbar
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+    document.body.style.overflow = 'hidden'
+    document.documentElement.style.overflow = 'hidden'
+    document.body.style.paddingRight = `${scrollbarWidth}px`
+
     return () => {
+      window.removeEventListener('wheel', preventScroll, { capture: true })
+      window.removeEventListener('touchmove', preventScroll, { capture: true })
+      window.removeEventListener('scroll', preventScroll, { capture: true })
+      window.removeEventListener('keydown', preventKeyScroll, { capture: true })
+      window.removeEventListener('keydown', handleKeyDown)
       document.body.style.overflow = ''
       document.body.style.paddingRight = ''
       document.documentElement.style.overflow = ''
-      window.removeEventListener('keydown', handleKeyDown)
     }
   }, [skill, handleKeyDown])
 

@@ -7,16 +7,8 @@ import { SkillsMarquee3D } from '@/components/ui/skills/SkillsMarquee3D'
 import { SkillTag } from '@/components/ui/skills/SkillTag'
 import { SkillDetailModal } from '@/components/ui/skills/SkillDetailModal'
 import { SkillGraphModal } from '@/components/ui/skills/SkillGraphModal'
-import { skillRows, getSkillByTitle, SkillConfig } from '@/config/skills'
+import { skillRows, getSkillByTitle, SkillConfig, topSkillsGraph } from '@/config/skills'
 
-// Top expertise areas with proficiency levels
-const expertise = [
-  { label: 'Data Engineering', level: 95 },
-  { label: 'Python / SQL', level: 92 },
-  { label: 'Cloud Platforms', level: 88 },
-  { label: 'Machine Learning', level: 85 },
-  { label: 'System Design', level: 82 },
-]
 
 export function Skills() {
   const [selectedSkill, setSelectedSkill] = useState<SkillConfig | null>(null)
@@ -110,7 +102,7 @@ export function Skills() {
           viewport={{ once: true }}
           transition={{ duration: 0.4 }}
         >
-          {expertise.map((item, index) => (
+          {topSkillsGraph.map((item, index) => (
             <div key={index} className="group">
               <div className="flex justify-between items-center mb-1.5">
                 <span className="text-text-secondary text-sm">{item.label}</span>

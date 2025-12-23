@@ -137,10 +137,10 @@ function FileItem({ project, isSelected, onSelect }: FileItemProps) {
     const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
     const handleMouseEnter = () => {
-        // 2 second delay before showing tooltip
+        // 1 second delay before showing tooltip
         hoverTimeoutRef.current = setTimeout(() => {
             setShowTooltip(true)
-        }, 2000)
+        }, 1000)
     }
 
     const handleMouseLeave = () => {

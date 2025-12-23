@@ -67,8 +67,8 @@ interface GraphData {
     links: GraphLink[]
 }
 
-// Panel styling - similar to .card but with rounded-lg for smaller elements
-const panelClass = "bg-surface/80 backdrop-blur-md border border-border rounded-lg"
+// Panel styling - matches .card background but with rounded-lg for smaller elements
+const panelClass = "bg-surface/80 backdrop-blur-2xl border border-border rounded-lg"
 
 // Zoom levels
 const FOCUS_ZOOM = 1.8
@@ -103,12 +103,12 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick, preloadMode = f
     const searchInputRef = useRef<HTMLInputElement>(null)
     const userInteractedRef = useRef(false)
 
-    // Check if welcome popup should show on first open after page reload
+    // Check if welcome popup should show on first ACTUAL open (not preload)
     useEffect(() => {
-        if (isOpen && !hasSeenWelcomeThisSession) {
+        if (isOpen && !preloadMode && !hasSeenWelcomeThisSession) {
             setShowWelcome(true)
         }
-    }, [isOpen])
+    }, [isOpen, preloadMode])
 
     // Close welcome popup
     const closeWelcome = useCallback(() => {
@@ -681,7 +681,7 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick, preloadMode = f
                             filter: showWelcome ? 'blur(4px)' : 'blur(0px)'
                         }}
                         exit={{ opacity: 0, scale: 0.96 }}
-                        transition={{ duration: 0.2 }}
+                        transition={{ duration: 0.2, delay: showWelcome ? 0.15 : 0 }}
                     >
                         {/* Search Panel (Top Center) */}
                         <div className="absolute top-5 left-1/2 -translate-x-1/2 z-10">
