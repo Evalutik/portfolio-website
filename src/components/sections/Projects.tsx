@@ -27,7 +27,10 @@ export function Projects() {
 
   return (
     <section id="projects" className="py-16 px-4 max-w-3xl mx-auto">
-      <SectionHeading title="Projects" />
+      <SectionHeading
+        title="Projects"
+        subtitle="Browse the directory tree and select a project to inspect its details."
+      />
 
       <motion.div
         className="flex flex-col md:flex-row gap-6"

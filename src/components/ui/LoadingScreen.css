@@ -1,0 +1,54 @@
+/* Loading screen - uses CSS animation for instant spinner (no JS hydration delay) */
+
+.loading-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background-color: #050A12;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    transition: opacity 0.4s ease-out;
+}
+
+.loading-screen--fading {
+    opacity: 0;
+}
+
+.loading-text {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    letter-spacing: 0.5px;
+}
+
+/* Pure CSS spinner - animates immediately, no JS needed */
+.loading-spinner {
+    display: inline-block;
+    width: 1ch;
+    text-align: center;
+}
+
+.loading-spinner::after {
+    content: '—';
+    animation: spin-chars 0.6s steps(1) infinite;
+}
+
+@keyframes spin-chars {
+    0% {
+        content: '—';
+    }
+
+    25% {
+        content: '\\';
+    }
+
+    50% {
+        content: '|';
+    }
+
+    75% {
+        content: '/';
+    }
+}

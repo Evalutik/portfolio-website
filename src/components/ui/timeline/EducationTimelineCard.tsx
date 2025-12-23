@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-interface TimelineCardProps {
+interface EducationTimelineCardProps {
     id: number
     title: string
     subtitle: string
@@ -14,7 +14,7 @@ interface TimelineCardProps {
     opacity: number
 }
 
-export function TimelineCard({
+export function EducationTimelineCard({
     id,
     title,
     subtitle,
@@ -23,7 +23,7 @@ export function TimelineCard({
     position,
     isVisible,
     opacity,
-}: TimelineCardProps) {
+}: EducationTimelineCardProps) {
     // Track how many paragraphs are revealed (0 = collapsed, 1+ = that many extra paragraphs shown)
     const [revealedCount, setRevealedCount] = useState(0)
     const [isAnimating, setIsAnimating] = useState(false)
@@ -166,8 +166,8 @@ export function TimelineCard({
                             <button
                                 onClick={handleKeepReading}
                                 className={`text-xs flex items-center gap-1 transition-colors duration-200 ${isFullyExpanded
-                                        ? 'text-text-muted/50 cursor-default'
-                                        : 'text-text-muted hover:text-text-primary cursor-pointer'
+                                    ? 'text-text-muted/50 cursor-default'
+                                    : 'text-text-muted hover:text-text-primary cursor-pointer'
                                     }`}
                                 disabled={isFullyExpanded}
                             >

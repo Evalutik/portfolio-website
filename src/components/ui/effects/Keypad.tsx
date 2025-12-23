@@ -188,7 +188,7 @@ export function Keypad({ onMagicClick }: KeypadProps) {
     }, [])
 
     return (
-        <div ref={keypadRef} className="keypad">
+        <div ref={keypadRef} className="keypad" style={{ userSelect: 'none' }}>
             {/* Hidden audio for click sound */}
             <audio ref={audioRef} src="/keypad/keypad-click.mp3" preload="auto" />
 

@@ -32,6 +32,13 @@ body {
   @apply bg-background text-text-primary font-sans;
   /* Inter font feature settings for improved typography */
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  /* Hide scrollbar during loading - LoadingScreen will add .page-loaded when ready */
+  overflow: hidden;
+}
+
+/* Show scrollbar when page is loaded */
+body.page-loaded {
+  overflow: auto;
 }
 
 /* Text selection - white background with black text */

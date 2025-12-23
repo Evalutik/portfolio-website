@@ -4,9 +4,12 @@ import { useEffect, useRef, useState, useMemo } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { SectionHeading } from '@/components/ui/common/SectionHeading'
-import { TimelineCard } from '@/components/ui/timeline/TimelineCard'
+import { EducationTimelineCard } from '@/components/ui/timeline/EducationTimelineCard'
+import { EducationStackCard } from '@/components/ui/timeline/EducationStackCard'
+import { ScrollStack, ScrollStackItem } from '@/components/ui/effects/ScrollStack'
+import { EducationDetailModal } from '@/components/ui/modals/EducationDetailModal'
 import { PRIMARY, BORDER_LIGHT, TEXT_MUTED, SURFACE } from '@/config/colors'
-import { educationData } from '@/config/education'
+import { educationData, EducationItem } from '@/config/education'
 
 if (typeof window !== 'undefined') {
     gsap.registerPlugin(ScrollTrigger)
@@ -43,6 +46,16 @@ export function Education() {
     const [scrollProgress, setScrollProgress] = useState(0)
     const [pathLength, setPathLength] = useState(0)
     const [markerPathProgress, setMarkerPathProgress] = useState<number[]>([])
+    const [isMobile, setIsMobile] = useState(false)
+    const [selectedEducation, setSelectedEducation] = useState<EducationItem | null>(null)
+
+    // Detect mobile (< 768px, matching Tailwind's md breakpoint)
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768)
+        checkMobile()
+        window.addEventListener('resize', checkMobile)
+        return () => window.removeEventListener('resize', checkMobile)
+    }, [])
 
     useEffect(() => {
         const path = pathRef.current
@@ -187,40 +200,74 @@ export function Education() {
                 />
             </div>
 
-            <div ref={timelineContainerRef} className="relative" style={{ height: '1200vh' }}>
-                <div className="sticky top-0 h-screen overflow-hidden">
-                    <div className="h-full flex justify-center">
-                        <div className="w-full max-w-3xl h-full relative px-4">
-                            <svg
-                                className="w-full h-full"
-                                viewBox={`0 ${viewBoxY} 750 ${VIEWPORT_HEIGHT}`}
-                                preserveAspectRatio="xMidYMid meet"
-                                fill="none"
-                                style={{ overflow: 'visible' }}
-                            >
-                                <path d={PATH_D} stroke={BORDER_LIGHT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.4" />
-                                <path ref={pathRef} d={PATH_D} stroke={PRIMARY} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                                {MARKER_Y_POSITIONS.map((y, index) => {
-                                    const x = MARKER_X_POSITIONS[index]
-                                    const isActive = markerPathProgress[index] !== undefined && currentState.drawProgress >= markerPathProgress[index]
-                                    return (
-                                        <circle key={index} cx={x} cy={y} r="8" fill={isActive ? PRIMARY : SURFACE} stroke={isActive ? PRIMARY : TEXT_MUTED} strokeWidth="2" />
-                                    )
-                                })}
-                                <circle cx={currentPoint.x} cy={currentPoint.y} r="6" fill={PRIMARY} />
-                            </svg>
-                        </div>
+            {/* Mobile: Scroll Stack */}
+            {isMobile && (
+                <>
+                    <div className="px-4 max-w-3xl mx-auto" style={{ paddingTop: '2rem' }}>
+                        <ScrollStack
+                            stackPosition="15%"
+                            stackOffset={12}
+                            cardGap={40}
+                        >
+                            {educationData.map((item) => (
+                                <ScrollStackItem key={item.id}>
+                                    <EducationStackCard
+                                        item={item}
+                                        onReadMore={setSelectedEducation}
+                                    />
+                                </ScrollStackItem>
+                            ))}
+                        </ScrollStack>
+                        {/* Spacer to give last card scroll room to maintain sticky position */}
+                        <div style={{ height: '25vh' }} aria-hidden="true" />
                     </div>
 
-                    {currentState.activeMarker >= 0 && currentState.activeMarker < educationData.length && (
-                        <TimelineCard
-                            {...educationData[currentState.activeMarker]}
-                            isVisible={currentState.cardVisible}
-                            opacity={currentState.cardOpacity}
-                        />
-                    )}
+                    {/* Education Detail Modal */}
+                    <EducationDetailModal
+                        isOpen={selectedEducation !== null}
+                        onClose={() => setSelectedEducation(null)}
+                        item={selectedEducation}
+                    />
+                </>
+            )}
+
+            {/* Desktop: Timeline */}
+            {!isMobile && (
+                <div ref={timelineContainerRef} className="relative" style={{ height: '1200vh' }}>
+                    <div className="sticky top-0 h-screen overflow-hidden">
+                        <div className="h-full flex justify-center">
+                            <div className="w-full max-w-3xl h-full relative px-4">
+                                <svg
+                                    className="w-full h-full"
+                                    viewBox={`0 ${viewBoxY} 750 ${VIEWPORT_HEIGHT}`}
+                                    preserveAspectRatio="xMidYMid meet"
+                                    fill="none"
+                                    style={{ overflow: 'visible' }}
+                                >
+                                    <path d={PATH_D} stroke={BORDER_LIGHT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.4" />
+                                    <path ref={pathRef} d={PATH_D} stroke={PRIMARY} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                                    {MARKER_Y_POSITIONS.map((y, index) => {
+                                        const x = MARKER_X_POSITIONS[index]
+                                        const isActive = markerPathProgress[index] !== undefined && currentState.drawProgress >= markerPathProgress[index]
+                                        return (
+                                            <circle key={index} cx={x} cy={y} r="8" fill={isActive ? PRIMARY : SURFACE} stroke={isActive ? PRIMARY : TEXT_MUTED} strokeWidth="2" />
+                                        )
+                                    })}
+                                    <circle cx={currentPoint.x} cy={currentPoint.y} r="6" fill={PRIMARY} />
+                                </svg>
+                            </div>
+                        </div>
+
+                        {currentState.activeMarker >= 0 && currentState.activeMarker < educationData.length && (
+                            <EducationTimelineCard
+                                {...educationData[currentState.activeMarker]}
+                                isVisible={currentState.cardVisible}
+                                opacity={currentState.cardOpacity}
+                            />
+                        )}
+                    </div>
                 </div>
-            </div>
+            )}
         </section>
     )
 }

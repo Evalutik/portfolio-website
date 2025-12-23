@@ -11,32 +11,35 @@ import { SectionDivider } from '@/components/ui/common/SectionDivider'
 import { FloatingCode } from '@/components/ui/effects/FloatingCode'
 import { CursorGlow } from '@/components/ui/effects/CursorGlow'
 import { ParallaxGrid } from '@/components/ui/effects/ParallaxGrid'
+import { PageWrapper } from '@/components/providers/PageWrapper'
 
 export default function Home() {
   return (
-    <main className="relative min-h-screen">
-      {/* Background effects - layered */}
-      <ParallaxGrid />
-      <ParticlesBackground />
-      <FloatingCode />
-      <CursorGlow />
+    <PageWrapper>
+      <main className="relative min-h-screen">
+        {/* Background effects - layered */}
+        <ParallaxGrid />
+        <ParticlesBackground />
+        <FloatingCode />
+        <CursorGlow />
 
-      {/* Navigation */}
-      <Navigation />
+        {/* Navigation */}
+        <Navigation />
 
-      {/* Content */}
-      <Hero />
-      <SectionDivider variant="spacer" />
-      <About />
-      <div className="py-16" /> {/* Simple spacer before Skills */}
-      <Skills />
-      <div className="py-16" /> {/* Simple spacer after Skills */}
-      <Projects />
-      <SectionDivider variant="wave" />
-      <Education />
-      <Experience />
-      <SectionDivider variant="code" />
-      <Contact />
-    </main>
+        {/* Content */}
+        <Hero />
+        <SectionDivider variant="spacer" />
+        <About />
+        <div className="py-16" /> {/* Simple spacer before Skills */}
+        <Skills />
+        <div className="py-16" /> {/* Simple spacer after Skills */}
+        <Projects />
+        <SectionDivider variant="wave" />
+        <Education />
+        <Experience />
+        <SectionDivider variant="code" />
+        <Contact />
+      </main>
+    </PageWrapper>
   )
 }
