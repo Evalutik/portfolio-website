@@ -89,7 +89,7 @@ function getShortDescription(skill: SkillConfig): string {
 /**
  * SkillGraphModal
  */
-export function SkillGraphModal({ isOpen, onClose, onSkillClick, preloadMode = false }: SkillGraphModalProps) {
+export function SkillGraphModal({ isOpen, onClose, preloadMode = false }: SkillGraphModalProps) {
     const [searchQuery, setSearchQuery] = useState('')
     const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
     const [nodeVisibility, setNodeVisibility] = useState<Record<string, number>>({})
@@ -100,6 +100,7 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick, preloadMode = f
     const [showWelcome, setShowWelcome] = useState(false)
     const [isMobile, setIsMobile] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fgRef = useRef<any>(null)
     const graphConfiguredRef = useRef(false)
     const searchInputRef = useRef<HTMLInputElement>(null)
@@ -401,7 +402,7 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick, preloadMode = f
     }, [])
 
     // Handle node click
-    const handleNodeClick = useCallback((node: any) => {
+    const handleNodeClick = useCallback((node: GraphNode) => {
         blurSearch()
 
         const currentVisibility = nodeVisibility[node.id] ?? 1
@@ -491,12 +492,12 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick, preloadMode = f
         if (!fgRef.current) return
 
         fgRef.current.d3Force('link')
-            .distance((link: any) => {
+            .distance((link: GraphLink) => {
                 if (link.linkType === 'hub-to-hub') return 150
                 if (link.linkType === 'hub-to-skill') return 80
                 return 50
             })
-            .strength((link: any) => {
+            .strength((link: GraphLink) => {
                 if (link.linkType === 'skill-to-skill') return 0.05
                 if (link.linkType === 'hub-to-skill') return 0.8
                 return 1
@@ -509,8 +510,8 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick, preloadMode = f
         const mainHub = graphData.nodes.find(n => n.id === 'hub-skills')
         if (mainHub) {
             // Fix main hub position to (0, 0)
-            (mainHub as any).fx = 0;
-            (mainHub as any).fy = 0;
+            (mainHub as unknown as { fx: number; fy: number }).fx = 0;
+            (mainHub as unknown as { fx: number; fy: number }).fy = 0;
         }
 
         fgRef.current.d3ReheatSimulation()
@@ -641,10 +642,10 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick, preloadMode = f
                 }
             }, 100)
         }
-    }, [showWelcome]) // Only trigger when showWelcome changes, not on initial open
+    }, [showWelcome, isOpen]) // Only trigger when showWelcome changes, not on initial open
 
     // Get link visibility
-    const getLinkVisibility = useCallback((link: any) => {
+    const getLinkVisibility = useCallback((link: GraphLink) => {
         const sourceId = typeof link.source === 'string' ? link.source : link.source.id
         const targetId = typeof link.target === 'string' ? link.target : link.target.id
         const sourceVis = nodeVisibility[sourceId] ?? 1
@@ -1070,21 +1071,23 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick, preloadMode = f
 
                                     nodeLabel=""
                                     nodeRelSize={2}
-                                    nodeVal={(node: any) => node.val}
+                                    nodeVal={(node: unknown) => (node as GraphNode).val}
 
-                                    linkWidth={(link: any) => {
-                                        const visibility = getLinkVisibility(link)
+                                    linkWidth={(link: unknown) => {
+                                        const graphLink = link as GraphLink
+                                        const visibility = getLinkVisibility(graphLink)
                                         if (visibility < 0.2) return 0
-                                        if (link.linkType === 'hub-to-hub') return 2
-                                        if (link.linkType === 'hub-to-skill') return 1.5
+                                        if (graphLink.linkType === 'hub-to-hub') return 2
+                                        if (graphLink.linkType === 'hub-to-skill') return 1.5
                                         return 1
                                     }}
 
-                                    linkColor={(link: any) => {
-                                        const visibility = getLinkVisibility(link)
+                                    linkColor={(link: unknown) => {
+                                        const graphLink = link as GraphLink
+                                        const visibility = getLinkVisibility(graphLink)
                                         if (visibility < 0.2) return 'transparent'
 
-                                        if (link.linkType === 'hub-to-hub' || link.linkType === 'hub-to-skill') {
+                                        if (graphLink.linkType === 'hub-to-hub' || graphLink.linkType === 'hub-to-skill') {
                                             const alpha = Math.round(visibility * 0.3 * 255).toString(16).padStart(2, '0')
                                             return `${TEXT_MUTED}${alpha}`
                                         }
@@ -1092,20 +1095,21 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick, preloadMode = f
                                         return `${ACCENT}${alpha}`
                                     }}
 
-                                    onNodeClick={handleNodeClick}
+                                    onNodeClick={(node: unknown) => handleNodeClick(node as GraphNode)}
                                     onBackgroundClick={handleBackgroundClick}
-                                    onNodeHover={(node: any) => setHoveredNode(node || null)}
+                                    onNodeHover={(node: unknown) => setHoveredNode((node as GraphNode) || null)}
 
-                                    nodeCanvasObject={(node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
-                                        const visibility = nodeVisibility[node.id] ?? 1
+                                    nodeCanvasObject={(node: unknown, ctx: CanvasRenderingContext2D, globalScale: number) => {
+                                        const graphNode = node as GraphNode
+                                        const visibility = nodeVisibility[graphNode.id] ?? 1
                                         if (visibility < 0.05) return
 
-                                        const label = node.name
-                                        const isHub = node.isHub
-                                        const isMainHub = node.hubType === 'main'
-                                        const isCategoryHub = node.hubType === 'category'
-                                        const isSelected = selectedNode?.id === node.id
-                                        const isHovered = hoveredNode?.id === node.id
+                                        const label = graphNode.name
+                                        const isHub = graphNode.isHub
+                                        const isMainHub = graphNode.hubType === 'main'
+                                        const isCategoryHub = graphNode.hubType === 'category'
+                                        const isSelected = selectedNode?.id === graphNode.id
+                                        const isHovered = hoveredNode?.id === graphNode.id
 
                                         let nodeSize: number
                                         if (isMainHub) {
@@ -1113,22 +1117,22 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick, preloadMode = f
                                         } else if (isCategoryHub) {
                                             nodeSize = 7
                                         } else {
-                                            nodeSize = Math.sqrt(node.val) * 2
+                                            nodeSize = Math.sqrt(graphNode.val) * 2
                                         }
 
                                         ctx.globalAlpha = visibility
 
                                         if (isSelected) {
                                             ctx.beginPath()
-                                            ctx.arc(node.x!, node.y!, nodeSize + 4, 0, 2 * Math.PI)
+                                            ctx.arc(graphNode.x!, graphNode.y!, nodeSize + 4, 0, 2 * Math.PI)
                                             ctx.strokeStyle = ACCENT
                                             ctx.lineWidth = 2
                                             ctx.stroke()
                                         }
 
                                         ctx.beginPath()
-                                        ctx.arc(node.x!, node.y!, nodeSize, 0, 2 * Math.PI)
-                                        ctx.fillStyle = node.color
+                                        ctx.arc(graphNode.x!, graphNode.y!, nodeSize, 0, 2 * Math.PI)
+                                        ctx.fillStyle = graphNode.color
                                         ctx.fill()
 
                                         if (isHub) {
@@ -1146,12 +1150,12 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick, preloadMode = f
                                             ctx.textAlign = 'center'
                                             ctx.textBaseline = 'middle'
                                             ctx.fillStyle = isHub ? TEXT_PRIMARY : TEXT_SECONDARY
-                                            ctx.fillText(label, node.x!, node.y! + nodeSize + fontSize * 0.8)
+                                            ctx.fillText(label, graphNode.x!, graphNode.y! + nodeSize + fontSize * 0.8)
                                         }
 
                                         // Hover tooltip - appears to the right of node
-                                        if (isHovered && node.shortDescription && globalScale > 0.5) {
-                                            const tooltipText = node.shortDescription
+                                        if (isHovered && graphNode.shortDescription && globalScale > 0.5) {
+                                            const tooltipText = graphNode.shortDescription
                                             const tooltipFontSize = Math.max(9 / globalScale, 2.5)
                                             const maxWidth = 180 / globalScale  // Wider tooltip
                                             ctx.font = `${tooltipFontSize}px Inter, sans-serif`
@@ -1184,8 +1188,8 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick, preloadMode = f
                                             const boxHeight = lines.length * lineHeight + padding * 2
 
                                             // Position to the right of node
-                                            const tooltipX = node.x! + nodeSize + 8 / globalScale
-                                            const tooltipY = node.y! - boxHeight / 2
+                                            const tooltipX = graphNode.x! + nodeSize + 8 / globalScale
+                                            const tooltipY = graphNode.y! - boxHeight / 2
 
                                             ctx.fillStyle = SURFACE
                                             ctx.fillRect(
@@ -1215,19 +1219,20 @@ export function SkillGraphModal({ isOpen, onClose, onSkillClick, preloadMode = f
                                         ctx.globalAlpha = 1
                                     }}
 
-                                    nodePointerAreaPaint={(node: any, color: string, ctx: CanvasRenderingContext2D) => {
-                                        const isMainHub = node.hubType === 'main'
-                                        const isCategoryHub = node.hubType === 'category'
+                                    nodePointerAreaPaint={(node: unknown, color: string, ctx: CanvasRenderingContext2D) => {
+                                        const graphNode = node as GraphNode
+                                        const isMainHub = graphNode.hubType === 'main'
+                                        const isCategoryHub = graphNode.hubType === 'category'
                                         let nodeSize: number
                                         if (isMainHub) {
                                             nodeSize = 10
                                         } else if (isCategoryHub) {
                                             nodeSize = 7
                                         } else {
-                                            nodeSize = Math.sqrt(node.val) * 2
+                                            nodeSize = Math.sqrt(graphNode.val) * 2
                                         }
                                         ctx.beginPath()
-                                        ctx.arc(node.x!, node.y!, nodeSize + 5, 0, 2 * Math.PI)
+                                        ctx.arc(graphNode.x!, graphNode.y!, nodeSize + 5, 0, 2 * Math.PI)
                                         ctx.fillStyle = color
                                         ctx.fill()
                                     }}

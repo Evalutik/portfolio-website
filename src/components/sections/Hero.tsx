@@ -65,7 +65,7 @@ export function Hero() {
             className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold mb-6 tracking-tight text-text-primary"
             variants={itemVariants}
           >
-            Hi, I'm{' '}
+            Hi, I&apos;m{' '}
             <span
               ref={gradientRef}
               className="text-gradient-animated cursor-default"

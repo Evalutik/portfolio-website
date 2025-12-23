@@ -1,9 +1,9 @@
 import {
   Database, Brain, Cloud, Server, Code2,
-  GitBranch, Terminal, Cpu, HardDrive, Network, Lock,
-  Workflow, FileCode, Container, Layers, Boxes, Gauge,
+  GitBranch, Terminal, Cpu,
+  FileCode, Container, Layers, Boxes,
   LineChart, Table, FileJson, Sparkles, Zap,
-  Bot, Eye, MessageSquare, Settings, Cog, Binary,
+  Eye, MessageSquare, Settings, Cog, Binary,
   Globe, Shield, Rocket, Search, Activity, Radio,
   Cable, Blocks, FolderGit2, TestTube, Users, RefreshCw,
   LucideIcon
