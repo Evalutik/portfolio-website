@@ -1,5 +1,4 @@
 import { ImageResponse } from 'next/og'
-import { BrainCircuit } from 'lucide-react'
 
 // Route segment config
 export const runtime = 'edge'
@@ -17,17 +16,20 @@ export default function Icon() {
         (
             <div
                 style={{
-                    fontSize: 24,
-                    background: 'transparent',
+                    background: '#0a0a0a',
                     width: '100%',
                     height: '100%',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: '#8b5cf6', // ACCENT color
+                    fontFamily: 'monospace',
+                    fontSize: 18,
+                    fontWeight: 700,
+                    color: '#8b5cf6',
+                    letterSpacing: '-1px',
                 }}
             >
-                <BrainCircuit size={28} />
+                {'>_'}
             </div>
         ),
         {
