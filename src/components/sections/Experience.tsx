@@ -180,12 +180,33 @@ export function Experience() {
         }
     }, [state, selectedIndex, selectedExperience, exitIndex])
 
+    // Focus terminal when state changes (for keyboard navigation)
     useEffect(() => {
         const terminal = terminalRef.current
         if (terminal) {
             terminal.focus({ preventScroll: true })
         }
     }, [state])
+
+    // Auto-focus terminal when it comes into view (for scroll entry)
+    useEffect(() => {
+        const terminal = terminalRef.current
+        if (!terminal) return
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        terminal.focus({ preventScroll: true })
+                    }
+                })
+            },
+            { threshold: 0.5 } // Focus when 50% visible
+        )
+
+        observer.observe(terminal)
+        return () => observer.disconnect()
+    }, [])
 
     useEffect(() => {
         window.addEventListener('keydown', handleKeyDown)

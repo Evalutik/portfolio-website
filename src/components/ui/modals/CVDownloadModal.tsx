@@ -20,6 +20,7 @@ export function CVDownloadModal({ isOpen, onClose }: CVDownloadModalProps) {
     const [showRipple, setShowRipple] = useState(false)
     const [downloadTriggered, setDownloadTriggered] = useState(false)
     const [showHintWave, setShowHintWave] = useState(false)
+    const [buttonDimensions, setButtonDimensions] = useState({ width: 0, height: 0 })
 
     const holdStartTime = useRef<number | null>(null)
     const animationFrame = useRef<number | null>(null)
@@ -194,9 +195,17 @@ export function CVDownloadModal({ isOpen, onClose }: CVDownloadModalProps) {
         handleMouseUp()
     }, [handleMouseUp])
 
+    // Measure button dimensions for SVG border - only on modal open (before holding starts)
+    useEffect(() => {
+        if (buttonRef.current && isOpen && buttonDimensions.width === 0) {
+            const { offsetWidth, offsetHeight } = buttonRef.current
+            setButtonDimensions({ width: offsetWidth, height: offsetHeight })
+        }
+    }, [isOpen, buttonDimensions.width])
+
     // Button dimensions for SVG border
-    const buttonWidth = 180
-    const buttonHeight = 40
+    const buttonWidth = buttonDimensions.width || 140
+    const buttonHeight = buttonDimensions.height || 40
     const borderRadius = 8
     const strokeWidth = 2
     const perimeter = 2 * (buttonWidth + buttonHeight - 4 * borderRadius) + 2 * Math.PI * borderRadius
@@ -358,7 +367,7 @@ export function CVDownloadModal({ isOpen, onClose }: CVDownloadModalProps) {
                                         onTouchEnd={handleTouchEnd}
                                         disabled={downloadTriggered}
                                         className="font-medium rounded-lg px-4 py-2 bg-surface border border-border text-text-primary text-sm disabled:opacity-50 hover:bg-surface-light hover:border-border-light transition-colors whitespace-nowrap"
-                                        style={{ width: buttonWidth, height: buttonHeight }}
+                                        style={buttonDimensions.width > 0 ? { minWidth: buttonDimensions.width, minHeight: buttonDimensions.height } : undefined}
                                     >
                                         <span className="flex items-center justify-center gap-2">
                                             <Download className="w-4 h-4 flex-shrink-0" />

@@ -27,6 +27,7 @@ export default function Icon() {
                     fontWeight: 700,
                     color: '#ffffff',
                     letterSpacing: '-1px',
+                    borderRadius: 6,
                 }}
             >
                 {'>_'}
