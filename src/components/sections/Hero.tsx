@@ -113,7 +113,7 @@ export function Hero() {
       >
         <a
           href="#projects"
-          className="btn-primary-animated text-center px-6 py-3 rounded-lg text-white font-medium text-sm"
+          className="btn-primary-animated text-center px-4 py-2 rounded-lg text-white font-medium text-sm"
           onClick={(e) => {
             e.preventDefault()
             document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' })
@@ -123,7 +123,7 @@ export function Hero() {
         </a>
         <a
           href="#contact"
-          className="btn-secondary-shine text-center px-6 py-3 rounded-lg bg-surface border border-border text-text-primary font-medium text-sm transition-all hover:bg-surface-light hover:border-border-light"
+          className="btn-secondary-shine text-center px-4 py-2 rounded-lg bg-surface border border-border text-text-primary font-medium text-sm transition-all hover:bg-surface-light hover:border-border-light"
           onClick={(e) => {
             e.preventDefault()
             document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })
