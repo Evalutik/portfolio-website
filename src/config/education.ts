@@ -45,8 +45,8 @@ export const educationData: EducationItem[] = [
         subtitle: 'BSc at University of Twente',
         year: '2025 - 2026',
         content: [
-            "The unique education model here throws you into the deep end immediately. We work in teams to build working software systems, solving problems that don't have textbook answers. Essential concepts from 'Discrete Structures & Efficient Algorithms' gave me the foundation, while 'Cyber-Physical Systems' forced me to think like an engineer, prioritizing architecture over quick code fixes.",
-            "I'm building deep technical expertise while mastering 'Data Science & Artificial Intelligence'. Surrounded by peers who are just as passionate, I feel a constant drive to push myself further. We challenge each other to find better solutions, turning every assignment into a competition for quality that raises the bar for everyone involved.",
+            "The unique education model here throws you into the deep end immediately. We work in teams to build working software systems, solving problems that don't have textbook answers. I went from essential concepts to courses like 'Cyber-Physical Systems' which forced me to think like an engineer, prioritizing architecture over quick code fixes.",
+            "I'm building deep technical expertise while mastering AI & ML and maintaining my own projects. Surrounded by peers who are just as passionate, I feel a constant drive to push myself further. We challenge each other to find better solutions, turning every assignment into a competition for quality that raises the bar for everyone involved.",
             "It is demanding, but seeing things I built actually work in the real world is the best feeling there is. There is a specific kind of joy in watching a system you architected from scratch handle live data without breaking, confirming that the long nights were absolutely worth it."
         ],
         position: 'left',
@@ -68,8 +68,8 @@ export const educationData: EducationItem[] = [
         subtitle: 'The Journey Continues',
         year: '2026+',
         content: [
-            "My ambition has scaled with my skills. I am targeting a Master's in Machine Learning to eventually become an AI Architect. I want to design the intelligent systems that shape our future, lead teams, and solve the hardest problems.",
-            "The journey is long, but I feel ready for every step of it. I am constantly learning, growing, and looking for the next challenge. I'm not just looking for a job; I am chasing problems that force me to evolve and seeking a team that moves as fast as I do, building the future one system at a time."
+            "My ambition has scaled with my skills. I am targeting a Master's in Machine Learning to eventually become a team lead AI Architect. I want to design the intelligent systems that shape our future, research new horizons, and solve the hardest problems.",
+            "The journey is long, but I feel ready for every step of it. I am constantly learning, growing, and looking for the next challenge. I am chasing problems that force me to evolve and seeking a team that moves as fast as I do, building the future one system at a time."
         ],
         position: 'left',
     },

@@ -21,9 +21,9 @@ function calculateAge(startDate: string): number {
 const age = calculateAge(BIRTH_DATE)
 
 const PARAGRAPHS = [
-  `I'm Andrei, a ${age}-year-old AI Architect, MLOps Engineer, and Software Developer. This website is my interactive business card and I hope you will like it!`,
+  `I'm Andrei, a ${age}-year-old AI Architect, MLOps Engineer, and Software Developer. This website is my interactive business card and I hope you will like staying here!`,
   "I combine deep mathematical foundations with rigorous systems engineering to build intelligent architectures that solve real-world problems. My expertise covers the full lifecycle, from designing custom neural networks to orchestrating distributed cloud infrastructure. I focus on creating resilient ecosystems where machine learning models integrate seamlessly with robust, scalable software.",
-  "I am driven by a hunger for difficult problems and a constant desire to evolve. Whether exploring abstract mathematics or leading a technical initiative, I bring creativity and purpose to my work. I am ready to join a team that moves fast and builds something meaningful."
+  "I am driven by a hunger for difficult problems and a constant desire to evolve. Whether designing a system or leading a technical initiative, I bring creativity and purpose to my work. I am ready to join teams that move fast and build something meaningful."
 ]
 
 export function About() {

@@ -28,7 +28,7 @@ export const experienceData: ExperienceItem[] = [
     {
         id: 2,
         company: 'Laser Export Ltd',
-        role: 'Software Developer',
+        role: 'Software Engineer',
         period: 'Jun 2025 - Aug 2025',
         description: [
             'Developed a professional, high-performance desktop application for generating structured, multilingual PDF/HTML reports from industrial Laser-Induced Plasma Spectroscopy (LIPS) analyzer measurement data. Built with JavaFX, the system automates mission-critical technical reporting for metallurgy labs and quality control departments.',
