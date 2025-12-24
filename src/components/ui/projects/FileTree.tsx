@@ -134,9 +134,18 @@ interface FileItemProps {
 
 function FileItem({ project, isSelected, onSelect }: FileItemProps) {
     const [showTooltip, setShowTooltip] = useState(false)
+    const [isMobile, setIsMobile] = useState(false)
     const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
+    // Detect mobile on mount
+    useEffect(() => {
+        setIsMobile(window.matchMedia('(max-width: 768px)').matches || 'ontouchstart' in window)
+    }, [])
+
     const handleMouseEnter = () => {
+        // Disable tooltips on mobile
+        if (isMobile) return
+
         // 1 second delay before showing tooltip
         hoverTimeoutRef.current = setTimeout(() => {
             setShowTooltip(true)

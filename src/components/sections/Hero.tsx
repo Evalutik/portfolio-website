@@ -53,9 +53,9 @@ export function Hero() {
 
       {/* Container - responsive layout */}
       <div className="max-w-3xl mx-auto px-4 w-full relative z-10 md:-mt-20">
-        {/* Text content */}
+        {/* Text content - moved up slightly on mobile */}
         <motion.div
-          className="text-center md:text-left"
+          className="text-center md:text-left -mt-12 md:mt-0"
           variants={containerVariants}
           initial="hidden"
           animate="visible"

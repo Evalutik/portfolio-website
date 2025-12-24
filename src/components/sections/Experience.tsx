@@ -379,18 +379,24 @@ export function Experience() {
                                             <div
                                                 key={exp.id}
                                                 onClick={() => handleItemClick(index)}
-                                                className={`flex items-center cursor-pointer font-mono -mx-3 px-3 ${selectedIndex === index
+                                                className={`flex flex-col md:flex-row md:items-center cursor-pointer font-mono -mx-3 px-3 py-1 md:py-0 ${selectedIndex === index
                                                     ? 'text-text-primary bg-primary/25'
                                                     : 'text-text-secondary hover:text-text-primary hover:bg-surface-light/30'
                                                     }`}
                                             >
-                                                <span className={`w-4 flex-shrink-0 ${selectedIndex === index ? 'text-accent' : 'text-transparent'}`}>
-                                                    {'>'}
-                                                </span>
-                                                <span>{exp.role}</span>
-                                                <span className="mx-2 text-text-secondary/70">@</span>
-                                                <span className={selectedIndex === index ? 'text-accent' : ''}>{exp.company}</span>
-                                                <span className="ml-auto text-text-secondary/60">{exp.period}</span>
+                                                {/* Title row */}
+                                                <div className="flex items-center">
+                                                    <span className={`w-4 flex-shrink-0 ${selectedIndex === index ? 'text-accent' : 'text-transparent'}`}>
+                                                        {'>'}
+                                                    </span>
+                                                    <span>{exp.role}</span>
+                                                </div>
+                                                {/* Company and date - same line on desktop, new line on mobile */}
+                                                <div className="flex items-center ml-4 md:ml-0 md:flex-1">
+                                                    <span className="md:mx-2 text-text-secondary/70">@</span>
+                                                    <span className={selectedIndex === index ? 'text-accent' : ''}>{exp.company}</span>
+                                                    <span className="ml-auto text-text-secondary/60">{exp.period}</span>
+                                                </div>
                                             </div>
                                         ))}
                                         {/* Exit option */}

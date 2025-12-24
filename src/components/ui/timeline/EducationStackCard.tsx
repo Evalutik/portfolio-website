@@ -16,13 +16,10 @@ export function EducationStackCard({ item, onReadMore }: EducationStackCardProps
 
     return (
         <div className="bg-surface border border-border rounded-xl p-5 shadow-xl">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="mb-1">
                 <h3 className="text-lg font-semibold text-text-primary">
                     {item.title}
                 </h3>
-                <span className="px-2 py-0.5 text-[12px] font-mono rounded-full bg-surface-light text-text-muted border border-border-light">
-                    {item.year}
-                </span>
             </div>
             <p className="text-sm text-accent mb-3">{item.subtitle}</p>
             <p className="text-sm text-text-secondary leading-relaxed line-clamp-3">

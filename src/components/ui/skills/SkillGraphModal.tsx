@@ -125,13 +125,15 @@ export function SkillGraphModal({ isOpen, onClose, preloadMode = false }: SkillG
     const closeWelcome = useCallback(() => {
         setShowWelcome(false)
         hasSeenWelcomeThisSession = true
-        // Focus search after welcome closes
-        setTimeout(() => {
-            if (searchInputRef.current) {
-                searchInputRef.current.focus()
-            }
-        }, 300)
-    }, [])
+        // Only focus search after welcome closes on desktop (not mobile)
+        if (!isMobile) {
+            setTimeout(() => {
+                if (searchInputRef.current) {
+                    searchInputRef.current.focus()
+                }
+            }, 300)
+        }
+    }, [isMobile])
 
     // Open welcome popup (from info button)
     const openWelcome = useCallback(() => {
@@ -632,9 +634,9 @@ export function SkillGraphModal({ isOpen, onClose, preloadMode = false }: SkillG
         }
     }, [isOpen, handleKeyDown])
 
-    // Focus search when welcome closes (not when it's open)
+    // Focus search when welcome closes (not when it's open) - desktop only
     useEffect(() => {
-        if (isOpen && !showWelcome && searchInputRef.current) {
+        if (isOpen && !showWelcome && !isMobile && searchInputRef.current) {
             // Only focus if welcome was previously shown and just closed
             setTimeout(() => {
                 if (!showWelcome && searchInputRef.current) {
@@ -642,7 +644,7 @@ export function SkillGraphModal({ isOpen, onClose, preloadMode = false }: SkillG
                 }
             }, 100)
         }
-    }, [showWelcome, isOpen]) // Only trigger when showWelcome changes, not on initial open
+    }, [showWelcome, isOpen, isMobile]) // Only trigger when showWelcome changes, not on initial open
 
     // Get link visibility
     const getLinkVisibility = useCallback((link: GraphLink) => {
@@ -714,6 +716,10 @@ export function SkillGraphModal({ isOpen, onClose, preloadMode = false }: SkillG
                                     placeholder="Search..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
+                                    autoComplete="off"
+                                    autoCapitalize="off"
+                                    autoCorrect="off"
+                                    spellCheck={false}
                                     className="bg-transparent text-xs text-text-primary focus:outline-none placeholder:text-text-muted flex-1 min-w-0"
                                 />
                                 <button
@@ -934,15 +940,28 @@ export function SkillGraphModal({ isOpen, onClose, preloadMode = false }: SkillG
                                         </div>
                                     </motion.div>
 
-                                    {/* Mobile: Bottom sheet card */}
+                                    {/* Mobile: Bottom sheet card with swipe-to-dismiss */}
                                     <motion.div
                                         className="absolute left-0 right-0 bottom-0 z-20 md:hidden pointer-events-auto"
                                         initial={{ opacity: 0, y: 100 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: 100 }}
                                         transition={{ duration: 0.2 }}
+                                        drag="y"
+                                        dragConstraints={{ top: 0, bottom: 0 }}
+                                        dragElastic={{ top: 0, bottom: 0.5 }}
+                                        onDragEnd={(_, info) => {
+                                            // Close card if swiped down more than 80px or with velocity
+                                            if (info.offset.y > 80 || info.velocity.y > 300) {
+                                                closeCard()
+                                            }
+                                        }}
                                     >
-                                        <div className={`${panelClass} rounded-b-none flex flex-col`} style={{ height: '40vh' }}>
+                                        {/* Swipe handle indicator */}
+                                        <div className="flex justify-center py-2">
+                                            <div className="w-10 h-1 bg-border rounded-full" />
+                                        </div>
+                                        <div className={`${panelClass} rounded-b-none flex flex-col`} style={{ height: 'calc(40vh - 12px)' }}>
                                             {/* Header */}
                                             <div className="flex items-start justify-between p-5 border-b border-border flex-shrink-0">
                                                 <div className="flex items-stretch gap-2">
