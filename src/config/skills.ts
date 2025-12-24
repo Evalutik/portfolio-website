@@ -977,15 +977,6 @@ export const dataEngineeringSkills: SkillConfig[] = [
     relatedTo: ['Delta Lake', 'Databricks', 'Apache Spark', 'Data Warehousing'],
   },
   {
-    title: 'NumPy',
-    icon: Binary,
-    description: 'Fundamental package for scientific computing in Python. NumPy provides powerful N-dimensional arrays and mathematical functions for numerical operations. It is the foundation for almost every data science and ML library in Python.',
-    shortDescription: '',
-    startDate: '2020-01',
-    useCases: ['Array operations', 'Linear algebra', 'Broadcasting', 'Scientific computing'],
-    relatedTo: ['Pandas', 'Python', 'Matplotlib', 'Scikit-learn', 'PyTorch'],
-  },
-  {
     title: 'Matplotlib',
     icon: LineChart,
     description: 'Comprehensive library for creating static, animated, and interactive visualizations in Python. Matplotlib is the backbone of Python data visualization, offering fine-grained control over every aspect of plots.',
@@ -1019,7 +1010,7 @@ export const dataEngineeringSkills: SkillConfig[] = [
     shortDescription: '',
     startDate: '2021-01',
     useCases: ['Free GPU training', 'Collaborative notebooks', 'Quick prototyping', 'ML experiments'],
-    relatedTo: ['Jupyter', 'Python', 'PyTorch', 'TensorFlow', 'GCP'],
+    relatedTo: ['Jupyter', 'Python', 'NumPy', 'Pandas', 'GCP'],
   },
   {
     title: 'PyAgrum',
@@ -1028,7 +1019,7 @@ export const dataEngineeringSkills: SkillConfig[] = [
     shortDescription: '',
     startDate: '2024-01',
     useCases: ['Bayesian networks', 'Probabilistic inference', 'Causal reasoning', 'Decision analysis'],
-    relatedTo: ['Python', 'Scikit-learn', 'NumPy', 'Pandas'],
+    relatedTo: ['Python', 'NumPy', 'Pandas', 'Jupyter'],
   },
   {
     title: 'Anaconda',
@@ -1037,7 +1028,7 @@ export const dataEngineeringSkills: SkillConfig[] = [
     shortDescription: '',
     startDate: '2020-01',
     useCases: ['Environment management', 'Package distribution', 'Data science setup', 'Dependency isolation'],
-    relatedTo: ['Python', 'Jupyter', 'Pandas', 'NumPy', 'Scikit-learn'],
+    relatedTo: ['Python', 'Jupyter', 'Pandas', 'NumPy', 'Matplotlib'],
   },
 ]
 

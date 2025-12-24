@@ -592,6 +592,7 @@ export function SkillGraphModal({ isOpen, onClose, preloadMode = false }: SkillG
                         configureForces()
                         graphConfiguredRef.current = true
                         // Retry zoomToFit multiple times to handle race conditions
+                        // More nodes = longer simulation time needed
                         const tryZoom = (delay: number) => {
                             setTimeout(() => {
                                 if (fgRef.current && !userInteractedRef.current) {
@@ -599,10 +600,11 @@ export function SkillGraphModal({ isOpen, onClose, preloadMode = false }: SkillG
                                 }
                             }, delay)
                         }
-                        tryZoom(200)
-                        tryZoom(500)
-                        tryZoom(1000)
-                        tryZoom(2000)
+                        tryZoom(300)
+                        tryZoom(800)
+                        tryZoom(1500)
+                        tryZoom(2500)
+                        tryZoom(4000)
                     }
                 }
             }
