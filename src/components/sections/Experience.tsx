@@ -183,7 +183,7 @@ export function Experience() {
     useEffect(() => {
         const terminal = terminalRef.current
         if (terminal) {
-            terminal.focus()
+            terminal.focus({ preventScroll: true })
         }
     }, [state])
 

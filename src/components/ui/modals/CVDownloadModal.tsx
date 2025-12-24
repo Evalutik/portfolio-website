@@ -195,7 +195,7 @@ export function CVDownloadModal({ isOpen, onClose }: CVDownloadModalProps) {
     }, [handleMouseUp])
 
     // Button dimensions for SVG border
-    const buttonWidth = 160
+    const buttonWidth = 180
     const buttonHeight = 40
     const borderRadius = 8
     const strokeWidth = 2
@@ -357,11 +357,11 @@ export function CVDownloadModal({ isOpen, onClose }: CVDownloadModalProps) {
                                         onTouchStart={handleTouchStart}
                                         onTouchEnd={handleTouchEnd}
                                         disabled={downloadTriggered}
-                                        className="font-medium rounded-lg px-4 py-2 bg-surface border border-border text-text-primary text-sm disabled:opacity-50 hover:bg-surface-light hover:border-border-light transition-colors"
+                                        className="font-medium rounded-lg px-4 py-2 bg-surface border border-border text-text-primary text-sm disabled:opacity-50 hover:bg-surface-light hover:border-border-light transition-colors whitespace-nowrap"
                                         style={{ width: buttonWidth, height: buttonHeight }}
                                     >
                                         <span className="flex items-center justify-center gap-2">
-                                            <Download className="w-4 h-4" />
+                                            <Download className="w-4 h-4 flex-shrink-0" />
                                             {isHolding ? 'Hold...' : 'I Understand'}
                                         </span>
                                     </button>
