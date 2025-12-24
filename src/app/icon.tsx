@@ -25,7 +25,7 @@ export default function Icon() {
                     fontFamily: 'monospace',
                     fontSize: 18,
                     fontWeight: 700,
-                    color: '#8b5cf6',
+                    color: '#ffffff',
                     letterSpacing: '-1px',
                 }}
             >
